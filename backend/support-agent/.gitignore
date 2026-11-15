@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+# Service-account / credential keys (never commit)
+*-key.json
+*-sa-key.json
+calculum-storage-sa-key.json
+# uv.lock IS committed — the Dockerfile uses it for reproducible `uv sync --frozen` builds.
+*.egg-info/
+.ruff_cache/
+# Local helper scripts and VS Code task overrides (developer convenience)
+run_services.sh
+run_services_vscode.sh
+.vscode/tasks.json

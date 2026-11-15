@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+    calculum_node:
+      container_name: ${PROJECT_NAME}-${PROJECT_ENV}-${PROJECT_COMPONENT}-nginx
+      build:
+        context: ./
+        args:
+          project_env: ${PROJECT_ENV}
+      ports:
+        - ${NGINX_EXTERNAL_PORT}:80
+      volumes:
+        - ./docker/nginx/conf/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+

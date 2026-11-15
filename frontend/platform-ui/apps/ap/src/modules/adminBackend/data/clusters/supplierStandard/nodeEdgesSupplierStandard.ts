@@ -1,0 +1,22 @@
+export const nodeEdgesSupplierStandard = `
+    uuid
+    clusterVersion
+    clusterId
+    similarityRateText
+    supplierName
+    parentName
+    supplierRegion
+    firstQuartile
+    median
+    thirdQuartile
+    ninety
+    occurrences
+    average
+    min
+    max
+    clusterInfo
+    companies
+    companiesCount
+    suppliers
+    parents
+`

@@ -1,0 +1,12 @@
+{
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "out": "docs/typedoc",
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/test-results/**", "**/playwright-report/**", "**/e2e/**", "**/tests/**", "**/docs/**", "**/public/**", "**/scripts/**"],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "theme": "default",
+  "name": "Calculum Frontend Documentation",
+  "readme": "README.md"
+}

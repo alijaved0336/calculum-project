@@ -1,0 +1,26 @@
+.menu--account {
+	li {
+		margin-top: $margin__bootstrap;
+		margin-bottom: $margin__bootstrap;
+	}
+}
+
+@media(max-width: 1350px) {
+	.menu--account {
+		.menu__link {
+			font-size: $font-md;
+		}
+	}
+}
+@media(max-width: 1200px) {
+	.change-row-lg {
+		display: flex;
+		flex-direction: column-reverse;
+	}
+}
+@media(max-width: 768px) {
+	.change-row-sm {
+		display: flex;
+		flex-direction: column-reverse;
+	}
+}

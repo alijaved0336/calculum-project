@@ -1,0 +1,29 @@
+// Espacios
+$grid-width: 1200px;
+
+$margin: 25px;
+$margin__bootstrap:	16px;
+$border__radius: 0.5rem;
+
+// Vertical
+$margin-vertical: 32px;
+
+// Logo e imágenes
+$logo-width: 160px;
+$icon-width: 1.5rem;
+
+// Formularios
+$button-height: 3rem;
+
+// ENV Notice
+$notice-height: .8rem;
+
+//Padding for Cards
+$padding-card: 4%;
+
+// Global zoom compensation
+// The global zoom of 0.67 on html affects positioning of fixed elements
+// $zoom-compensation: factor to fix position (1 / 0.67 ≈ 1.4925)
+// $zoom-content-reset: counter-zoom to restore content size (0.67)
+$zoom-compensation: 1.4925;
+$zoom-content-reset: 0.67;

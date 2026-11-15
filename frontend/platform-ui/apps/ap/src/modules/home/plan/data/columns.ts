@@ -1,0 +1,16 @@
+import { translate } from "../../../../utils/translation";
+
+export const summaryColumns = [
+  { field: "name", title: translate.t("home.analyze.table.planName"), width: "240px", type: "text", cell: "goToPlan", footerCell: "totalTemplateString", footerClassName: "text-left" },
+  { field: 'volume', title: translate.t('home.analyze.table.volume'), width: '160px', allowHide: true, hidden: false, filter: 'numeric', resizable: true, cell: 'moneyTemplate', footerCell: 'moneyRoundSummaryTemplate',  footerClassName: 'text-right' },
+  { field: 'cashFlowOpportunity', title: translate.t('home.analyze.table.potentialCashFlow'), width: '160px', allowHide: true, hidden: false, filter: 'numeric', resizable: true, cell: 'moneyTemplate', footerCell: 'moneyRoundSummaryTemplate',  footerClassName: 'text-right'},
+  { field: 'expectedCashFlow', title: translate.t('home.analyze.table.expectedCashFlow'), width: '160px', allowHide: true, hidden: false, filter: 'numeric', resizable: true, cell: 'moneyTemplate', footerCell: 'moneyRoundSummaryTemplate',  footerClassName: 'text-right'},
+  { field: 'contractual', title: translate.t('home.analyze.table.contractualPaymentTerms'), width: '160px', allowHide: true, hidden: false, filter: 'numeric', resizable: true, className: 'text-center', footerCell: 'weightAvgRoundSummaryNoneDecimalsTemplate', footerClassName: 'text-center' },
+  { field: 'paymentTermsOpportunity', title: translate.t('home.analyze.table.paymentTermsOpportunity'), width: '160px', allowHide: true, hidden: false, filter: 'numeric', resizable: true, className: 'text-center', footerCell: 'weightAvgRoundSummaryNoneDecimalsTemplate', footerClassName: 'text-center' },
+  { field: 'parents', title: translate.t('home.analyze.table.parents'),  width: '120px', allowHide: true, hidden: false, filter: 'numeric', resizable: true, className: 'text-center', footerCell: 'sumSimpleNumbers', footerClassName: 'text-center'},
+  { field: 'suppliers', title: translate.t('home.analyze.table.suppliers'), width: '120px', allowHide: true, hidden: false, filter: 'numeric', resizable: true, className: 'text-center', footerCell: 'sumSimpleNumbers', footerClassName: 'text-center'},
+  { field: 'spends', title: translate.t('home.analyze.table.spends'), width: '120px', allowHide: true, hidden: false, filter: 'numeric', resizable: true, className: 'text-center', footerCell: 'sumSimpleNumbers', footerClassName: 'text-center'},
+  { field: 'execution', title: translate.t('home.analyze.table.execution'), width: '150px', allowHide: true, hidden: false, filter: 'numeric', resizable: true, className: 'text-center', cell: 'percentColumn', footerCell: 'executionFooterTemplate', footerClassName: 'text-center'},
+  { field: 'startDate.date', title: translate.t('home.analyze.table.startDate'), type: 'date', width: '150px', allowHide: true, hidden: false, filter: 'date', resizable: true, className: 'text-right', cell: 'datesInfoTemplate', footerCell: 'getMinDate', footerClassName: 'text-center'},
+  { field: 'endDate.date', title: translate.t('home.analyze.table.endDate'), type: 'date', width: '150px', allowHide: true, hidden: false, filter: 'date', resizable: true, className: 'text-right', cell: 'datesInfoTemplate', footerCell: 'getMaxDate', footerClassName: 'text-center'},
+]

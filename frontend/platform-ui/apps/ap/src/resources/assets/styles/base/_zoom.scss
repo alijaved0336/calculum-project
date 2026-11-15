@@ -1,0 +1,4 @@
+// Host-owned page scale — not design-system. Keep zoom out of DS `_inter.scss`.
+html {
+  zoom: 0.67;
+}

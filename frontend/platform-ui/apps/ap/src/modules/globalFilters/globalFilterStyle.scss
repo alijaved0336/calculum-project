@@ -1,0 +1,436 @@
+/* !!! DO NOT USE 'SCOPED' !!! */
+// ? - Use scoped styles
+@import "src/resources/assets/styles/variables/colors";
+
+/** Carousel */
+.template-options-container {
+  width: 8%;
+  display: flex;
+}
+
+.badge-container {
+  width: var(--w);
+  overflow: hidden;
+  gap: 8px;
+  align-self: stretch;
+  position: relative;
+}
+
+.buttons-container {
+  width: 10%;
+  justify-content: end;
+}
+
+/** End Carousel */
+
+.fixed-position {
+  position: sticky;
+  top: 20px;
+  z-index: 9000;
+  background: white;
+}
+
+.body-left-side {
+  border-right-style: solid;
+  border-right-width: 1px;
+  border-color: #ddd;
+  padding-right: 8px;
+}
+
+// Filters bar
+.filter-applied-badge * {
+  cursor: pointer;
+}
+
+// Level Container Section with the three buttons
+.level-buttons-container {
+  .k-button {
+    padding: 0.625rem 1.25rem;
+    border-radius: 1.9375rem !important;
+    background: white !important;
+    color: $color-gray-600 !important;
+    border-color: $color-gray-300 !important;
+    font-size: 14px;
+
+    &:focus {
+      border-color: $color-gray-300 !important;
+    }
+  }
+
+  .parent-active {
+    background-color: $color-indigo-200 !important;
+    border-color: $color-indigo-200 !important;
+    color: $color-indigo-700 !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .supplier-active {
+    background-color: $color-bluelight-100 !important;
+    border-color: $color-bluelight-100 !important;
+    color: $color-bluelight-700 !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .spend-active {
+    background-color: $color-gray-200 !important;
+    border-color: $color-gray-200 !important;
+    color: $color-gray-800 !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .k-button:nth-child(1) {
+    .active {
+      background-color: $color-indigo-200 !important;
+      border-color: $color-indigo-200 !important;
+      color: $color-indigo-700 !important;
+    }
+  }
+
+  .k-button:nth-child(2) {
+    .active {
+      background-color: $color-bluelight-100 !important;
+      border-color: $color-bluelight-100 !important;
+      color: $color-bluelight-700 !important;
+    }
+  }
+
+  .k-button:nth-child(3) {
+    .active {
+      background-color: $color-gray-200 !important;
+      border-color: $color-gray-200 !important;
+      color: $color-gray-800 !important;
+    }
+  }
+}
+
+.k-panelbar.panel-bar {
+  border: none !important;
+
+  li {
+    margin-bottom: 8px;
+
+    // Title
+    .k-link {
+      border-radius: 8px;
+      background-color: $color-gray-50 !important;
+
+      &:hover {
+        background-color: $color-gray-100 !important;
+      }
+
+      &:focus,
+      .k-selected,
+      .k-focus {
+        box-shadow: none;
+      }
+    }
+
+    // Content
+    .k-panelbar-content.k-content {
+      background-color: $color-gray-50 !important;
+    }
+  }
+
+  li.k-expanded {
+    .k-link {
+      border-radius: 8px 8px 0 0;
+      background-color: $color-gray-200 !important;
+      border: none;
+    }
+  }
+
+  .checkbox-wrapper {
+    &:hover {
+      background-color: $color-gray-100 !important;
+
+      .k-panelbar.panel-bar .k-checkbox+.k-label,
+      .k-panelbar.panel-bar .k-checkbox-wrap+.k-label,
+      .k-panelbar.panel-bar .k-checkbox+.k-checkbox-label,
+      .k-panelbar.panel-bar .k-checkbox-wrap+.k-checkbox-label {
+        background-color: $color-gray-100 !important;
+      }
+    }
+  }
+
+  // line at the top
+  &>.k-item+.k-item,
+  &>.k-panelbar-header+.k-panelbar-header {
+    border: none !important;
+  }
+}
+
+.show-spinner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  z-index: 999;
+}
+
+@keyframes scaleFilterIcon {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.5);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes borderAnimation {
+  0% {
+    border: 1px solid $color-primary-100;
+  }
+
+  50% {
+    border: 5px solid $color-gray-300;
+  }
+
+  100% {
+    border: 1px solid $color-primary-100;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+.filters-container {
+  width: 100%;
+  position: relative;
+}
+
+.topbar-filters {
+  display: flex;
+  align-content: center;
+  flex-wrap: wrap;
+  height: 40px;
+  width: 100%;
+  border-radius: 0px 0px 8px 8px;
+  border: 1px solid var(--gray-200, #eaecf0);
+  background: var(--gray-50, #f9fafb);
+  gap: 1%;
+}
+
+.filter-applied-badge {
+  align-items: center;
+  background: $color-gray-50;
+  border-radius: 20px;
+  border: 1px solid var(--gray-neutral-300, #d2d6db);
+  padding: 3px 5px;
+}
+
+.modal-filters {
+  display: none;
+  width: 100%;
+  height: 100vh;
+
+  &.active {
+    position: absolute;
+    display: block;
+    background: transparent;
+  }
+}
+
+.icon-filter-div {
+  text-align: center;
+  justify-content: flex-end;
+  display: flex;
+
+  .filter-icon-container {
+    position: relative;
+    display: flex;
+    width: 40px;
+    height: 40px;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    border-radius: 29px;
+    border: 1px solid $color-gray-300;
+    background: #fff;
+    box-shadow: 0px 4px 6px -2px rgba(16, 24, 40, 0.03),
+      0px 12px 16px -4px rgba(16, 24, 40, 0.08);
+    cursor: pointer;
+
+    &:hover,
+    &.active {
+      border-radius: 29px;
+      animation: borderAnimation 0.5s ease-in-out forwards;
+      background: $color-primary-100;
+      box-shadow: 0px 4px 6px -2px rgba(16, 24, 40, 0.03),
+        0px 12px 16px -4px rgba(16, 24, 40, 0.08);
+
+      svg {
+        animation: scaleFilterIcon 0.5s ease-in-out forwards;
+        color: $color-primary-500;
+      }
+    }
+
+    .filters-count {
+      align-items: center;
+      background: $color-primary-500;
+      border-radius: 10px;
+      color: #fff;
+      display: inline-flex;
+      height: 14px;
+      justify-content: center;
+      padding: 0px 2px;
+      position: absolute;
+      right: -0.35rem;
+      text-align: center;
+      top: -0.35rem;
+      width: 14px;
+    }
+  }
+}
+
+// Dialog
+.options-container {
+  position: absolute;
+  display: block;
+  opacity: 0;
+  right: 0;
+  width: 810px;
+  background: #ffffff;
+  border-radius: 0.5rem;
+  padding: 16px 10px;
+  box-shadow: 0px 32px 64px -12px rgb(16, 24, 40, 0.14);
+  z-index: 1001;
+  height: calc(120vh);
+  transform: translateX(100%);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+
+  &.active {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  &.inactive {
+    opacity: 0;
+    transform: translateX(110%);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  // Header
+
+  .header-filter {
+    border-bottom: 1px solid $color-gray-200;
+  }
+
+  // Body
+
+  // Left Side
+
+  .left-side {
+    width: 254px;
+
+    &.body-left-side {
+      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: auto;
+    }
+  }
+
+  // Right Side
+
+  .right-side {
+    width: calc(100% - 254px);
+
+    &.body-right-side {
+      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: auto;
+    }
+  }
+
+  // Footer
+
+  .footer-filter {
+    width: 100%;
+    border-top: 1px solid $color-gray-200;
+
+    .footer-right-side {
+      justify-content: flex-end;
+      gap: 10px;
+    }
+  }
+}
+
+.container-buttons {
+  flex: 1 0 auto;
+  justify-content: end;
+  gap: 1rem;
+}
+
+hr {
+  margin-top: unset;
+  margin-bottom: unset;
+}
+
+.options-menu-filters {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  align-items: center;
+
+  &.active {
+    background: $color-primary-50;
+    color: $color-red;
+  }
+
+  &:hover {
+    background: $color-primary-50;
+    color: $color-red;
+
+    span {
+      color: $color-red;
+    }
+  }
+
+  .number-filter-category {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+    background: $color-gray-100;
+    width: 30px;
+    height: 30px;
+  }
+}
+
+#higher-z-index-btn {
+  z-index: 10;
+}
+
+#selectedGFTemplate {
+  width: 200px;
+}

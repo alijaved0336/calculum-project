@@ -1,0 +1,322 @@
+# PR Validation Pipeline (AR only)
+# Runs only on Pull Requests targeting master, staging, or production
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: Pipeline-templates
+      ref: refs/heads/master
+
+trigger: none
+pr:
+  branches:
+    include:
+      - master
+      - staging
+      - production
+  paths:
+    exclude:
+      - '*.md'
+      - 'docs/**'
+      - '.gitignore'
+
+pool:
+  name: Ubuntu-Aws
+
+variables:
+- group: Shared-Global-Vars
+# S3 path for environment configuration (DEV environment for PR validation)
+- name: S3_ENV_FILE_PATH
+  value: 's3://s3sync-calculum/DEV/front-end'
+# Disable SonarQube for promotion PRs (master→staging, staging→production, staging→master)
+- name: SONAR_ENABLED_FOR_PR
+  value: $[not(or(and(eq(variables['System.PullRequest.SourceBranch'], 'refs/heads/master'), eq(variables['System.PullRequest.TargetBranch'], 'refs/heads/staging')), and(eq(variables['System.PullRequest.SourceBranch'], 'refs/heads/staging'), eq(variables['System.PullRequest.TargetBranch'], 'refs/heads/production')), and(eq(variables['System.PullRequest.SourceBranch'], 'refs/heads/staging'), eq(variables['System.PullRequest.TargetBranch'], 'refs/heads/master'))))]
+- name: MINIMUM_COVERAGE
+  value: '5'
+# AR_ALLOW_BYPASS_BUILD is gone (UC-ENT-18). It waived a guard in apps/ar/vite.config.ts that
+# refused production-mode builds while VITE_BYPASS_AUTH was set. This pipeline needed the waiver
+# because it copies the DEV .env.local from S3, which sets the flag, and validation bundles were
+# going red over a misconfiguration no commit could reach. Guard, flag and both waivers are
+# deleted together, so the S3 line is now inert rather than blocking. G-60.
+
+steps:
+# 1. Checkout
+# Full clone (fetchDepth: 0) needed for SonarQube merge base detection
+- checkout: self
+  path: s                 # required when using cross-repo templates; preserves $(Build.SourcesDirectory)
+  persistCredentials: true
+  fetchDepth: 0
+  clean: false
+  lfs: false
+  submodules: false
+  displayName: 'Checkout repository'
+
+# 1b. Detect promotion/back-merge PR (content-based, never fails the build).
+# A PR is a promotion iff every non-merge commit on HEAD is already on a
+# protected branch (master/main/staging/production) — that code was already
+# reviewed when it first entered master. Branch names are NOT reliable here:
+# merge-downs come from inconsistently named intermediate branches
+# (S110/Front/staging-to-master, oviedo/master-release-staging, ...).
+# Fail-open: any error or non-PR build leaves IS_PROMOTION_PR=False.
+- script: |
+    set +e
+    IS_PROMOTION="False"
+    if [ -n "${SYSTEM_PULLREQUEST_PULLREQUESTID:-}" ]; then
+      SHALLOW=$(git rev-parse --is-shallow-repository 2>/dev/null)
+      if [ "$SHALLOW" = "true" ]; then
+        echo "Shallow clone - treating as NOT a promotion."
+      else
+        EXISTING=""
+        for b in master main staging production; do
+          if git ls-remote --exit-code --heads origin "$b" >/dev/null 2>&1; then
+            EXISTING="$EXISTING $b"
+          fi
+        done
+        if [ -z "$EXISTING" ]; then
+          echo "No protected branches on origin - NOT a promotion."
+        else
+          git fetch --no-tags origin $EXISTING >/dev/null 2>&1
+          EXCLUDE=""
+          for b in $EXISTING; do EXCLUDE="$EXCLUDE ^origin/$b"; done
+          COUNT=$(git rev-list --no-merges --count HEAD $EXCLUDE 2>/dev/null)
+          echo "New non-merge commits vs protected branches ($EXISTING ): ${COUNT:-error}"
+          if [ -n "$COUNT" ] && [ "$COUNT" -eq 0 ] 2>/dev/null; then
+            IS_PROMOTION="True"
+          fi
+        fi
+      fi
+    else
+      echo "Not a PR build."
+    fi
+    echo "IS_PROMOTION_PR=$IS_PROMOTION"
+    echo "##vso[task.setvariable variable=IS_PROMOTION_PR]$IS_PROMOTION"
+    exit 0
+  displayName: 'Detect promotion/back-merge PR'
+  workingDirectory: '$(Build.SourcesDirectory)'
+
+# 2. Copy env files from S3
+# PR validation always uses DEV environment
+- script: |
+    set -e
+    echo "========================================="
+    echo "Step 1: Copy env files from S3"
+    echo "========================================="
+    echo "Target Branch: $(System.PullRequest.TargetBranch)"
+    echo "S3 Source: $(S3_ENV_FILE_PATH)"
+    echo ""
+
+    # AR .env.local
+    if aws s3 cp $(S3_ENV_FILE_PATH)/ar/.env.local $(Build.SourcesDirectory)/apps/ar/.env.local; then
+      echo "SUCCESS: AR .env.local copied from S3"
+    else
+      echo "ERROR: Failed to copy AR .env.local from S3"
+      exit 1
+    fi
+
+    # AR kendo license, to the REPO ROOT rather than to apps/ar (G-304): kendo-licensing searches
+    # upward from wherever it runs, so one copy at the root serves both postinstall hooks.
+    #
+    # Non-fatal here, and strict on the deploy path instead. Validation builds nothing a user will
+    # see, and making every AR pull request fail the day the key expires buys less than it costs.
+    # deploy-frontend-ar.yml is where an unlicensed bundle is refused.
+    if aws s3 cp $(S3_ENV_FILE_PATH)/ar/kendo-ui-license.txt \
+         $(Build.SourcesDirectory)/kendo-ui-license.txt; then
+      echo "SUCCESS: AR kendo-ui-license.txt copied from S3"
+    else
+      echo "##vso[task.logissue type=warning]No kendo-ui-license.txt in S3 for this environment. This validation run builds an UNLICENSED bundle, and the deploy pipeline will REFUSE the same build (G-304)."
+    fi
+
+
+
+    echo "========================================="
+  displayName: 'Copy env files'
+  failOnStderr: false
+
+# 4. Build Application (AR only via turbo)
+- script: |
+    set -e
+    echo "========================================="
+    echo "Step 2: Build Application (AR)"
+    echo "========================================="
+    echo "Node version: $(node -v)"
+    echo "Working directory: $(pwd)"
+    echo ""
+
+    echo "Installing pnpm..."
+    export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+    # corepack, not a bare `npm install -g pnpm@9`: the global install renames the existing
+    # <prefix>/lib/node_modules/pnpm out of the way before writing the new copy, and a leftover
+    # .pnpm-* from an earlier run makes that rename fail with ENOTEMPTY (exit 217) before a single
+    # line of AR is built (G-76). corepack activates a pinned version in place, so it has no
+    # directory to collide with. Mirrors the fix already applied to the root pr-validation.yml.
+    if corepack enable && corepack prepare pnpm@9 --activate; then
+      echo "pnpm activated through corepack"
+    else
+      echo "corepack unavailable, falling back to a forced global install"
+      rm -rf "$(npm prefix -g)/lib/node_modules/.pnpm-"* || true
+      npm install -g pnpm@9 --quiet --force
+    fi
+    echo "##vso[task.prependpath]$HOME/.npm-global/bin"
+    export PATH="$HOME/.npm-global/bin:$PATH"
+    echo "✓ pnpm: $(pnpm -v)"
+
+    echo "Cleaning node_modules..."
+    rm -rf node_modules apps/ar/node_modules
+    echo "✓ node_modules cleaned"
+
+    echo "Running pnpm install..."
+    if pnpm install --frozen-lockfile; then
+      echo "SUCCESS: pnpm install completed"
+    else
+      echo "ERROR: pnpm install failed"
+      exit 1
+    fi
+
+    echo ""
+    echo "Running turbo build (AR)..."
+    if npx turbo run build --filter=@ada/ar; then
+      echo "SUCCESS: Build completed"
+    else
+      echo "ERROR: Build failed"
+      exit 1
+    fi
+    echo "========================================="
+  workingDirectory: '$(Build.SourcesDirectory)'
+  displayName: 'Build Application'
+  failOnStderr: false
+
+# 4. Tests - Execute AR test suite with coverage (AR has no unit tests yet in Sprint 1)
+- script: |
+    set -e
+    echo "========================================="
+    echo "Step 3: Execute Tests (AR)"
+    echo "========================================="
+    echo "Working directory: $(pwd)"
+    echo ""
+
+    echo "Running AR test suite with coverage..."
+    if npx turbo run test --filter=@ada/ar -- --coverage; then
+      echo "SUCCESS: All AR tests passed"
+      echo ""
+      echo "Test results location:"
+      find apps/ar/test-results -type f 2>/dev/null || echo "Warning: test-results folder not found"
+    else
+      echo "ERROR: Tests failed"
+      exit 1
+    fi
+    echo "========================================="
+  workingDirectory: '$(Build.SourcesDirectory)'
+  displayName: 'Execute Tests'
+  failOnStderr: false
+
+# 5. Results - Publish test results to Azure DevOps
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results'
+  condition: succeededOrFailed()
+  inputs:
+    testResultsFiles: '**/apps/ar/test-results/junit.xml'
+    searchFolder: '$(Build.SourcesDirectory)'
+    failTaskOnFailedTests: true
+    testRunTitle: 'PR Validation Tests - $(Build.SourceBranchName)'
+
+# 6. Coverage - Publish code coverage report to Azure DevOps
+- task: PublishCodeCoverageResults@2
+  displayName: 'Publish Code Coverage'
+  condition: succeededOrFailed()
+  inputs:
+    summaryFileLocation: '$(Build.SourcesDirectory)/apps/ar/test-results/coverage/cobertura-coverage.xml'
+    failIfCoverageEmpty: true
+
+# 7. ReportGenerator - Generate HTML coverage report
+- task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@5
+  displayName: 'Generate Coverage Report'
+  condition: succeededOrFailed()
+  inputs:
+    reports: '$(Build.SourcesDirectory)/apps/ar/test-results/coverage/cobertura-coverage.xml'
+    targetdir: '$(Build.SourcesDirectory)/apps/ar/CoverageReport'
+    reporttypes: 'HtmlInline_AzurePipelines;Cobertura;Badges'
+    verbosity: 'Info'
+
+# 8. Verify - Check minimum code coverage threshold
+- task: PowerShell@2
+  displayName: 'Verify Minimum Code Coverage'
+  condition: succeededOrFailed()
+  inputs:
+    targetType: 'inline'
+    script: |
+      Write-Host "Checking code coverage threshold..."
+
+      [xml]$coverage = Get-Content "$(Build.SourcesDirectory)/apps/ar/CoverageReport/Cobertura.xml"
+      $lineRate = [math]::Round([decimal]$coverage.coverage.'line-rate' * 100, 2)
+      $branchRate = [math]::Round([decimal]$coverage.coverage.'branch-rate' * 100, 2)
+
+      Write-Host "Line Coverage: $lineRate%"
+      Write-Host "Branch Coverage: $branchRate%"
+      Write-Host "Minimum Required: $(MINIMUM_COVERAGE)%"
+
+      if ($lineRate -lt $(MINIMUM_COVERAGE)) {
+          Write-Host "##vso[task.logissue type=error]Line coverage $lineRate% is below minimum threshold of $(MINIMUM_COVERAGE)%"
+          exit 1
+      } else {
+          Write-Host "##vso[task.complete result=Succeeded;]Code coverage is above minimum threshold"
+      }
+    failOnStderr: true
+
+# 9. Artifacts - Publish coverage report as downloadable artifact
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Coverage Report Artifact'
+  condition: succeededOrFailed()
+  inputs:
+    pathToPublish: '$(Build.SourcesDirectory)/apps/ar/CoverageReport'
+    artifactName: 'CodeCoverageReport'
+    publishLocation: 'Container'
+
+# 10. SonarQube Skip - Report passed status for promotion PRs so branch policy doesn't wait forever
+- script: |
+    echo "SonarQube analysis skipped for promotion PR ($(System.PullRequest.SourceBranch) → $(System.PullRequest.TargetBranch))"
+    curl -s -X POST \
+      -H "Authorization: Bearer $(System.AccessToken)" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "state": "succeeded",
+        "description": "SonarQube analysis skipped for promotion PR",
+        "context": {
+          "name": "quality gate",
+          "genre": "SonarQube"
+        }
+      }' \
+      "$(System.CollectionUri)$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.ID)/pullRequests/$(System.PullRequest.PullRequestId)/statuses?api-version=7.1-preview.1"
+  displayName: 'Skip SonarQube - Report Passed Status'
+  condition: and(succeeded(), or(ne(lower(variables['SONAR_EXECUTE']), 'true'), ne(variables['SONAR_ENABLED_FOR_PR'], 'True'), eq(variables['IS_PROMOTION_PR'], 'True')))
+
+# 11. SonarQube - Prepare analysis on SonarQube Server
+- task: SonarQubePrepare@7
+  displayName: 'Prepare analysis on SonarQube Server'
+  condition: and(succeeded(), eq(lower(variables['SONAR_EXECUTE']), 'true'), eq(variables['SONAR_ENABLED_FOR_PR'], 'True'), ne(variables['IS_PROMOTION_PR'], 'True'))
+  inputs:
+    SonarQube: SonarQube
+    scannerMode: cli
+    configMode: file
+    configFile: 'apps/ar/sonar-project.properties'
+    extraProperties: |
+      sonar.projectBaseDir=$(Build.SourcesDirectory)/apps/ar
+
+# 12. SonarQube - Run Code Analysis
+- task: SonarQubeAnalyze@7
+  displayName: 'Run Code Analysis'
+  condition: and(succeeded(), eq(lower(variables['SONAR_EXECUTE']), 'true'), eq(variables['SONAR_ENABLED_FOR_PR'], 'True'), ne(variables['IS_PROMOTION_PR'], 'True'))
+
+# 13. SonarQube - Publish Quality Gate Result (fails pipeline if Quality Gate fails)
+- task: SonarQubePublish@7
+  displayName: 'Publish Quality Gate Result'
+  condition: and(succeeded(), eq(lower(variables['SONAR_EXECUTE']), 'true'), eq(variables['SONAR_ENABLED_FOR_PR'], 'True'), ne(variables['IS_PROMOTION_PR'], 'True'))
+  inputs:
+    checkQualityGate: true
+
+# 15. Cleanup - Remove build files from agent workspace
+- script: 'sudo rm -r -f $(Build.SourcesDirectory)/*'
+  workingDirectory: '$(Build.SourcesDirectory)'
+  displayName: 'Delete build directory'
+  condition: always()
+  continueOnError: true

@@ -1,0 +1,16 @@
+.venv
+.git
+.gitignore
+.env*
+.cursor
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+qdrant_storage
+*.log

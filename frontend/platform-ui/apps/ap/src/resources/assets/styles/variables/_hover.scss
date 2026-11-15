@@ -1,0 +1,19 @@
+
+.hover-effect {
+    &-fill {
+      &-primary {
+        &:hover {
+          fill: $color-primary-500;
+        }
+      }
+    }
+    &-color {
+      &-primary {
+        &:hover {
+          color: $color-primary-500;
+        }
+      }
+    }
+  }
+  
+  

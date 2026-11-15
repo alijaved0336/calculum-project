@@ -1,0 +1,440 @@
+// We use !important here to override the default Bootstrap styles.
+// Taken from tailwindcss v3.3.2
+
+/*
+* Utilities for setting the height of an element.
+*/
+
+/*** Height ***/
+.h {
+  &-0 {
+    height: 0px;
+  }
+
+  &-px {
+    height: 1px !important;
+  }
+
+  &-0\.5 {
+    height: 0.125rem; /* 2px */
+  }
+
+  &-1 {
+    height: 0.25rem; /* 4px */
+  }
+
+  &-1\.5 {
+    height: 0.375rem; /* 6px */
+  }
+
+  &-2 {
+    height: 0.5rem; /* 8px */
+  }
+
+  &-2\.5 {
+    height: 0.625rem; /* 10px */
+  }
+
+  &-3 {
+    height: 0.75rem; /* 12px */
+  }
+
+  &-3\.5 {
+    height: 0.875rem; /* 14px */
+  }
+
+  &-4 {
+    height: 1rem; /* 16px */
+  }
+
+  &-5 {
+    height: 1.25rem; /* 20px */
+  }
+
+  &-6 {
+    height: 1.5rem; /* 24px */
+  }
+
+  &-7 {
+    height: 1.75rem; /* 28px */
+  }
+
+  &-8 {
+    height: 2rem; /* 32px */
+  }
+
+  &-9 {
+    height: 2.25rem; /* 36px */
+  }
+
+  &-10 {
+    height: 2.5rem; /* 40px */
+  }
+
+  &-11 {
+    height: 2.75rem; /* 44px */
+  }
+
+  &-12 {
+    height: 3rem; /* 48px */
+  }
+
+  &-14 {
+    height: 3.5rem; /* 56px */
+  }
+
+  &-16 {
+    height: 4rem; /* 64px */
+  }
+
+  &-20 {
+    height: 5rem; /* 80px */
+  }
+
+  &-24 {
+    height: 6rem; /* 96px */
+  }
+
+  &-28 {
+    height: 7rem; /* 112px */
+  }
+
+  &-32 {
+    height: 8rem; /* 128px */
+  }
+
+  &-36 {
+    height: 9rem; /* 144px */
+  }
+
+  &-40 {
+    height: 10rem; /* 160px */
+  }
+
+  &-44 {
+    height: 11rem; /* 176px */
+  }
+
+  &-48 {
+    height: 12rem; /* 192px */
+  }
+
+  &-52 {
+    height: 13rem; /* 208px */
+  }
+
+  &-56 {
+    height: 14rem; /* 224px */
+  }
+
+  &-60 {
+    height: 15rem; /* 240px */
+  }
+
+  &-64 {
+    height: 16rem; /* 256px */
+  }
+
+  &-72 {
+    height: 18rem; /* 288px */
+  }
+
+  &-80 {
+    height: 20rem; /* 320px */
+  }
+
+  &-96 {
+    height: 24rem; /* 384px */
+  }
+
+  &-auto {
+    height: auto;
+  }
+
+  &-1\/2 {
+    height: 50%;
+  }
+
+  &-1\/3 {
+    height: 33.333333%;
+  }
+
+  &-2\/3 {
+    height: 66.666667%;
+  }
+
+  &-1\/4 {
+    height: 25%;
+  }
+
+  &-2\/4 {
+    height: 50%;
+  }
+
+  &-3\/4 {
+    height: 75%;
+  }
+
+  &-1\/5 {
+    height: 20%;
+  }
+
+  &-2\/5 {
+    height: 40%;
+  }
+
+  &-3\/5 {
+    height: 60%;
+  }
+
+  &-4\/5 {
+    height: 80%;
+  }
+
+  &-full {
+    height: 100%;
+  }
+
+  &-screen {
+    height: 100vh;
+  }
+
+  &-min {
+    height: min-content;
+  }
+
+  &-max {
+    height: max-content;
+  }
+
+  &-fit {
+    height: fit-content;
+  }
+}
+
+/*** Min Height ***/
+.min-h {
+  &-0 {
+    min-height: 0px;
+  }
+
+  &-px {
+    min-height: 1px !important;
+  }
+
+  &-0\.5 {
+    min-height: 0.125rem; /* 2px */
+  }
+
+  &-1 {
+    min-height: 0.25rem; /* 4px */
+  }
+
+  &-1\.5 {
+    min-height: 0.375rem; /* 6px */
+  }
+
+  &-2 {
+    min-height: 0.5rem; /* 8px */
+  }
+
+  &-2\.5 {
+    min-height: 0.625rem; /* 10px */
+  }
+
+  &-3 {
+    min-height: 0.75rem; /* 12px */
+  }
+
+  &-3\.5 {
+    min-height: 0.875rem; /* 14px */
+  }
+
+  &-4 {
+    min-height: 1rem; /* 16px */
+  }
+
+  &-5 {
+    min-height: 1.25rem; /* 20px */
+  }
+
+  &-6 {
+    min-height: 1.5rem; /* 24px */
+  }
+
+  &-7 {
+    min-height: 1.75rem; /* 28px */
+  }
+
+  &-8 {
+    min-height: 2rem; /* 32px */
+  }
+
+  &-9 {
+    min-height: 2.25rem; /* 36px */
+  }
+
+  &-10 {
+    min-height: 2.5rem; /* 40px */
+  }
+
+  &-11 {
+    min-height: 2.75rem; /* 44px */
+  }
+
+  &-12 {
+    min-height: 3rem; /* 48px */
+  }
+
+  &-14 {
+    min-height: 3.5rem; /* 56px */
+  }
+
+  &-16 {
+    min-height: 4rem; /* 64px */
+  }
+
+  &-20 {
+    min-height: 5rem; /* 80px */
+  }
+
+  &-24 {
+    min-height: 6rem; /* 96px */
+  }
+
+  &-28 {
+    min-height: 7rem; /* 112px */
+  }
+
+  &-32 {
+    min-height: 8rem;  /* 128px */
+  }
+
+  &-36 {
+    min-height: 9rem; /* 144px */
+  }
+
+  &-40 {
+    min-height: 10rem; /* 160px */
+  }
+
+  &-44 {
+    min-height: 11rem; /* 176px */
+  }
+
+  &-48 {
+    min-height: 12rem; /* 192px */
+  }
+
+  &-52 {
+    min-height: 13rem; /* 208px */
+  }
+
+  &-56 {
+    min-height: 14rem; /* 224px */
+  }
+
+  &-60 {
+    min-height: 15rem; /* 240px */
+  }
+
+  &-64 {
+    min-height: 16rem; /* 256px */
+  }
+
+  &-72 {
+    min-height: 18rem; /* 288px */
+  }
+
+  &-80 {
+    min-height: 20rem; /* 320px */
+  }
+
+  &-96 {
+    min-height: 24rem; /* 384px */
+  }
+
+  &-128 {
+    min-height: 32rem; /* 512px */
+  }
+
+  &-132 {
+    min-height: 34rem; /* 544px */
+  }
+
+  &-136 {
+    min-height: 38rem; /* 608px */
+  }
+
+  &-140 {
+    min-height: 40rem; /* 640px */
+  }
+
+  &-144 {
+    min-height: 44rem; /* 704px */
+  }
+
+  &-148 {
+    min-height: 48rem; /* 768px */
+  }
+
+  &-152 {
+    min-height: 52rem !important; /* 832px */
+  }
+
+  &-156 {
+    min-height: 56rem; /* 896px */
+  }
+
+  &-auto {
+    min-height: auto !important;
+  }
+
+  &-1\/2 {
+    min-height: 50%;
+  }
+
+  &-1\/3 {
+    min-height: 33.333333%;
+  }
+
+  &-2\/3 {
+    min-height: 66.666667%;
+  }
+
+  &-1\/4 {
+    min-height: 25%;
+  }
+
+  &-2\/4 {
+    min-height: 50%;
+  }
+
+  &-3\/4 {
+    min-height: 75%;
+  }
+
+  &-1\/5 {
+    min-height: 20%;
+  }
+
+  &-2\/5 {
+    min-height: 40%;
+  }
+
+  &-3\/5 {
+    min-height: 60%;
+  }
+
+  &-4\/5 {
+    min-height: 80%;
+  }
+
+  &-full {
+    min-height: 100%;
+  }
+
+  &-screen {
+    min-height: 100vh;
+  }
+}

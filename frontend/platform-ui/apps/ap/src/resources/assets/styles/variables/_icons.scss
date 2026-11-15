@@ -1,0 +1,182 @@
+// ? - Remove this class
+.icon-svg {
+	display: inline-block;
+	width: 32px;
+	height: 32px;
+	background-size: contain;
+	background-repeat: no-repeat;
+	margin-right: $margin__bootstrap;
+}
+
+.icon-analyze-black {
+  background-image: url('@/resources/assets/images/icons/icon-analize-black.svg');
+}
+
+a {
+	
+	.icon-release {
+		background-image: url('@/resources/assets/images/icons/release.svg');
+	}
+
+	.notes-icon {
+		background-image: url('@/resources/assets/images/icons/notes-icon.svg');
+	}	
+	
+	.icon-compare {
+		background-image: url('@/resources/assets/images/icons/icon32-compare.svg');
+	}
+	.icon-overview {
+		background-image: url('@/resources/assets/images/icons/icon32-overview.svg');
+	}
+	.icon-analyze {
+		background-image: url('@/resources/assets/images/icons/icon32-analyze.svg');
+	}
+  	.icon-plan {
+		background-image: url('@/resources/assets/images/icons/icon32-plan.svg');
+	}
+	.icon-execute {
+		background-image: url('@/resources/assets/images/icons/icon32-execute.svg');
+	}
+	.icon-manage-module {
+		background-image: url('@/resources/assets/images/icons/icon32-manage-module.svg');
+	}
+	.icon-settings {
+		background-image: url('@/resources/assets/images/icons/icon32-settings.svg');
+	}
+	.us-flag {
+		background-image: url('@/resources/assets/images/icons/us.svg');
+	}
+	.china-flag {
+		background-image: url('@/resources/assets/images/icons/cn.svg');
+	}
+	.gb-flag {
+		background-image: url('@/resources/assets/images/icons/gb.svg');
+	}
+	.japon-flag {
+		background-image: url('@/resources/assets/images/icons/jp.svg');
+	}
+	.suiza-flag {
+		background-image: url('@/resources/assets/images/icons/ch.svg');
+	}
+	.eu-flag {
+		background-image: url('@/resources/assets/images/icons/european-union.svg');
+	}
+	.icon-baggage-add {
+		background-image: url('@/resources/assets/images/fonticons/baggage-add.svg');
+	}
+	.icon-list-bullets {
+		background-image: url('@/resources/assets/images/fonticons/list-bullets.svg');
+	}
+	.icon-common-file-text-download {
+		background-image: url('@/resources/assets/images/fonticons/common-file-text-download.svg');
+	}
+	.icon-common-file-text-upload {
+		background-image: url('@/resources/assets/images/fonticons/common-file-text-upload.svg');
+	}
+	.icon-saving-bank-international {
+		background-image: url('@/resources/assets/images/fonticons/saving-bank-international.svg');
+	}
+	.icon-bin {
+		background-image: url('@/resources/assets/images/fonticons/bin.svg');
+	}
+	&.active,
+	&:hover {		
+		.icon-compare {
+			background-image: url('@/resources/assets/images/icons/icon-compare__hover.svg');
+		}
+		.icon-overview {
+			background-image: url('@/resources/assets/images/icons/icon-overview__hover.svg');
+		}
+		.icon-analyze {
+			background-image: url('@/resources/assets/images/icons/icon-analyze__hover.svg');
+		}
+    	.icon-plan {
+			background-image: url('@/resources/assets/images/icons/icon-plan__hover.svg');
+		}
+		.icon-execute {
+			background-image: url('@/resources/assets/images/icons/icon-execute__hover.svg');
+		}
+		.icon-manage-module {
+			background-image: url('@/resources/assets/images/icons/icon32-manage-module_hover.svg');
+		}
+		.icon-settings {
+			background-image: url('@/resources/assets/images/icons/icon32-settings__hover.svg');
+		}
+		.icon-baggage-add {
+			background-image: url('@/resources/assets/images/fonticons/baggage-add__hover.svg');
+		}
+		.icon-list-bullets {
+			background-image: url('@/resources/assets/images/fonticons/list-bullets__hover.svg');
+		}
+		.icon-common-file-text-download {
+			background-image: url('@/resources/assets/images/fonticons/common-file-text-download__hover.svg');
+		}
+		.icon-common-file-text-upload {
+			background-image: url('@/resources/assets/images/fonticons/common-file-text-upload__hover.svg');
+		}
+		.icon-saving-bank-international {
+			background-image: url('@/resources/assets/images/fonticons/saving-bank-international__hover.svg');
+		}
+		.icon-bin {
+			background-image: url('@/resources/assets/images/fonticons/bin__hover.svg');
+		}
+	}
+	
+}
+
+.icon-svg-sidebar {
+  height: 30px;
+  width: 30px;
+  border-radius: 0px;
+  display: inline-block;    
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center
+}
+
+.icon-svg-32 {
+  width: 32px;
+  height: 32px;
+}
+
+.icon-svg-30 {
+	width: 32px;
+	height: 32px;
+  }
+
+.icon-svg-24{
+	width: 24px;
+	height: 24px;
+}
+
+.icon-svg-36 {
+  width: 36px;
+  height: 36px;
+}
+
+.icon-svg-20 {
+  width: 20px;
+  height: 20px;
+	display: inline-block;
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+
+.icon-svg-18 {
+  width: 18px;
+  height: 18px;
+	display: inline-block;
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+
+.icon-svg-16 {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-svg-15 {
+	width: 16px;
+	height: 16px;
+  }
+

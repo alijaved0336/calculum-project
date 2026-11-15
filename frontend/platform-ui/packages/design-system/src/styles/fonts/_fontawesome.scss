@@ -1,0 +1,7 @@
+@import "@fortawesome/fontawesome-free/css/all.css";
+
+// v4 compatibility layer: lets code still written against Font Awesome 4's
+// class names (e.g. class="fa fa-remove") and its old `font-family: FontAwesome`
+// convention keep resolving to real v7 glyphs, without renaming anything.
+@import "@fortawesome/fontawesome-free/css/v4-font-face.css";
+@import "@fortawesome/fontawesome-free/css/v4-shims.css";

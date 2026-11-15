@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "types": ["vite/client", "vitest/globals"],
+    "paths": {
+      "@/*": ["src/*"],
+      "@ada/auth":            ["../../packages/auth/src/index.ts"],
+      "@ada/core":            ["../../packages/core/src/index.ts"],
+      "@ada/design-system":   ["../../packages/design-system/src/index.ts"],
+      "@ada/design-system/*": ["../../packages/design-system/src/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,26 @@
+// Generates real Bootstrap 5 utility classes from the `bootstrap` package installed
+// in this workspace, trimmed to only the classes design-system components use.
+//
+// Host apps may still be on an older Bootstrap major (e.g. AP is on 4.6.2), which
+// doesn't ship these class names (Bootstrap 4 has .mr-*/.ml-*, not .me-*/.ms-*).
+// Import this into a component's *scoped* <style> block - Vue's scoping appends a
+// data-attribute to every rule, so the generated classes apply only within that
+// component and never collide with the host app's own Bootstrap version globally.
+//
+// Add more keys from bootstrap/scss/_utilities.scss to $utilities below as more
+// Bootstrap-5-only classes are needed - do not import the full utilities API here,
+// it would emit hundreds of unused rules into every component that imports this file.
+
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/variables-dark";
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/utilities";
+
+$utilities: (
+  "margin-end": map-get($utilities, "margin-end"),
+  "margin-start": map-get($utilities, "margin-start"),
+);
+
+@import "bootstrap/scss/utilities/api";

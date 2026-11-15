@@ -1,0 +1,58 @@
+.tab-content__menu {
+	@include isFlex(center, flex-end);
+	width: 100%;
+	margin-top: $margin__bootstrap;
+	margin-bottom: $margin__bootstrap;
+	text-align: center;
+	font-size: $font-md;
+	.switch {
+		margin-left: $margin__bootstrap;	
+		margin-top: 7px;	
+	}	
+	&-item {
+		border-top: $border-light;
+		border-bottom: $border-light;
+		height: calc(#{$margin}*3 - 5px);
+		padding: calc(#{$margin__bootstrap}/3);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		&:first-child {
+			border-left: $border-light;
+			border-top-left-radius: $border__radius;
+			border-bottom-left-radius: $border__radius;
+		}
+		&:last-child {
+			position: relative;
+			border-right: $border-light;
+			border-top-right-radius: $border__radius;
+			border-bottom-right-radius: $border__radius;
+			div {
+				display: flex;
+				.title-item {
+					margin-top: 8px;
+				}
+			}
+			&::after {
+				content: '';
+				position: absolute;
+				top: calc(-#{$margin__bootstrap} / 2 - 1px);
+				left: calc(#{$margin__bootstrap} + 5px);
+				background-color: $color-excerpt;
+				width: 1px;
+				height: calc(#{$margin}*2);
+				transform: rotate(45deg);
+			}
+			&::before {
+				content: '';
+				position: absolute;
+				bottom: calc(-#{$margin__bootstrap} / 2 - 1px);
+				left: calc(#{$margin__bootstrap} + 5px);
+				background-color: $color-excerpt;
+				width: 1px;
+				height: calc(#{$margin}*2);
+				transform: rotate(-45deg);
+			}			
+		}		
+	}
+}

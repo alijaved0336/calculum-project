@@ -1,0 +1,62 @@
+/**
+ * Shared disabled visual for DS interactive components.
+ *
+ * Import once per host after the Kendo theme (Storybook `preview.ts`, app styles entry)
+ * so `.k-disabled` matches DS disabled chrome.
+ *
+ * In component SCSS: `@use "@ada/design-system/styles/disabled-state.scss" as *;`
+ * then `@include ds-disabled-state;` on the disabled modifier / `:disabled`.
+ *
+ * Kendo Bootstrap resets some widgets (e.g. `.k-switch.k-disabled { opacity: 1 }`) —
+ * include those compound selectors here so our rule wins on specificity.
+ */
+
+@mixin ds-disabled-state {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+
+@mixin ds-disabled-interaction {
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+
+.ds-is-disabled {
+  @include ds-disabled-state;
+
+  &,
+  & * {
+    @include ds-disabled-interaction;
+  }
+}
+
+.k-text-disabled,
+.k-disabled,
+.k-state-disabled,
+.k-switch.k-disabled,
+.k-checkbox-wrap.k-disabled,
+.k-radio-wrap.k-disabled,
+.k-checkbox:disabled,
+.k-checkbox.k-disabled,
+.k-radio:disabled,
+.k-radio.k-disabled,
+input.k-input:disabled,
+input.k-input[disabled],
+textarea.k-textarea:disabled,
+textarea.k-textarea[disabled] {
+  @include ds-disabled-state;
+  filter: none;
+
+  &,
+  & * {
+    @include ds-disabled-interaction;
+  }
+
+  /* Nested `.k-disabled` / `:disabled` must not stack opacity (~0.25). */
+  .k-disabled,
+  :disabled {
+    opacity: 1;
+    filter: none;
+  }
+}

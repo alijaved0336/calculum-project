@@ -1,0 +1,88 @@
+[project]
+name = "ingestion-calculum"
+version = "0.2.0"
+description = "Calculum AI ingestion pipeline — fetch, chunk, embed, store in Qdrant"
+requires-python = ">=3.11"
+
+dependencies = [
+    # ── API framework ──────────────────────────────────────────────────────
+    "fastapi==0.111.0",
+    "uvicorn[standard]==0.30.1",
+    "pydantic==2.7.4",
+    "pydantic-settings>=2.4.0",
+    # ── Vector store ───────────────────────────────────────────────────────
+    "qdrant-client>=1.15.1",
+    # ── LangChain ─────────────────────────────────────────────────────────
+    "langchain-core>=0.3",
+    "langchain-experimental>=0.3",
+    "langchain-text-splitters>=0.3",
+    # ── HTTP client ────────────────────────────────────────────────────────
+    "httpx>=0.27.0,<0.28.0",
+    "tenacity>=8.3.0",
+    "requests>=2.31.0",
+    # ── PDF / document parsing ────────────────────────────────────────────
+    "unstructured[pdf]>=0.14.0",
+    "langchain-community>=0.2.0",
+    "pypdf>=4.0.0",
+    "docx2txt>=0.8",
+    "pdfplumber>=0.11.10",
+    # ── Scheduler ─────────────────────────────────────────────────────────
+    "APScheduler==3.10.4",
+    # ── File upload support ────────────────────────────────────────────────
+    "python-multipart>=0.0.9",
+    # ── PostgreSQL ────────────────────────────────────────────────────────
+    "alembic>=1.13.0",
+    "asyncpg>=0.29.0",
+    "sqlalchemy[asyncio]>=2.0.30",
+    "pdfplumber>=0.11.10",
+    # ── Embedding tokenizer (token-accurate chunking; no word-split) ───────
+    "transformers>=4.40",
+    # Vendored tokenizer files — single source of truth, offline (no HF download).
+    "calculum-tokenizer @ git+https://dev.azure.com/calculum/AI%20Negotiation/_git/calculum-tokenize@v0.1.0",
+    "google-cloud-storage",
+    # ── Media (video duration probe + compression); provides ffmpeg + ffprobe ──
+    "static-ffmpeg>=2.5",
+    "sse-starlette>=3.0.3",
+    "google-cloud-video-transcoder>=1.21.0",
+    # ── Auth (Azure B2C RS256 JWKS verification) ──────────────────────────
+    "PyJWT>=2.8.0",
+    "cryptography>=42.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# calculum-tokenizer is a git (direct reference) dependency.
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "api",
+    "application",
+    "agents",
+    "domain",
+    "infrastructure",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==8.2.2",
+    "pytest-asyncio==0.23.7",
+    # ── Evaluation framework ──────────────────────────────────────────────────
+    "ragas",
+    "langchain-openai>=0.2.0",
+    "numpy>=1.26",
+    # ── Cross-encoder re-ranker (ms-marco-MiniLM-L-6-v2) ─────────────────────
+    "sentence-transformers>=3.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "ragas: marks tests for ragas evaluation (requires live APIs)",
+    "integration: marks tests as integration tests (require external services)",
+    "e2e: marks tests as end-to-end tests",
+]

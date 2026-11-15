@@ -1,0 +1,67 @@
+/*!
+ * Components Partials Menu Header App
+ */
+.menu {
+	&__header {
+		display: flex;
+		justify-content: flex-end;
+		align-items: end;
+		.menu__item {
+			margin-left: $margin__bootstrap;
+			margin-right: $margin__bootstrap;
+			margin-bottom: $margin__bootstrap;
+			i {
+				font-size: $font-icon;
+			}
+			&.dropdown {
+				.link--icon {
+					margin-left: 0;
+				}
+				&-menu {
+					padding: $margin__bootstrap calc(#{$margin__bootstrap}*2);
+					margin: $margin__bootstrap;
+				}
+				&-item {
+					margin: calc(#{$margin__bootstrap}/3) 0;
+					&:hover,
+					&:active {
+						background-color: transparent;
+					}
+				}
+			}
+		}
+	}
+	&__sidebar {
+		.menu__item {
+			margin-bottom: calc(#{$margin__bootstrap}*2);
+		}
+	}
+}
+
+.has-message {
+	position: relative; 
+	span {
+		content: '';
+		position: absolute;
+		top: -3px;
+		right: -3px;
+		width: 5px;
+		height: 5px;
+		background-color: $button-bg-primary;
+		border-radius: 50%;
+	}
+}
+
+.has-message-white {
+	position: relative; 
+	span {
+		content: '';
+		position: absolute;
+		top: -3px;
+		right: -3px;
+		width: 5px;
+		height: 5px;
+		background-color: white;
+		border-radius: 50%;
+	}
+}

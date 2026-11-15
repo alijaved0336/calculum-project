@@ -1,0 +1,236 @@
+@import "src/resources/assets/styles/variables/_colors";
+
+.manage-top-overview,
+.manage-top-email-negotiations,
+.financing-9boxes {
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.manage-top-overview {
+  background-image: url("@/resources/assets/images/teaser/manage/background_abstract_manage.svg");
+}
+
+.manage-top-email-negotiations {
+  background-image: url("@/resources/assets/images/teaser/manage/background_abstract_manage.svg");
+}
+
+.financing-9boxes {
+  background-image: url("@/resources/assets/images/teaser/nineBoxes/background_abstract_blue.svg");
+}
+
+.rounder-corners {
+  border-radius: 8px;
+}
+
+.here-top-main-section {
+  height: 244px;
+}
+
+.col-1.number-col {
+  max-width: 5.3333333333%;
+}
+
+.hero-svg {
+  max-width: 615px;
+}
+
+.hero-top-image {
+  max-width: 615px;
+  height: auto; 
+  max-height: 228px; 
+  overflow: hidden;
+  padding: 3rem 3.5rem;
+}
+
+.number-circle {
+  min-width: 24px;
+  height: 24px;
+  max-height: 24px;
+  max-width: 24px;
+  border-radius: 50%;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $color-gray-300;
+  color: $color-gray-700;
+  font-weight: 600;
+}
+
+.manage-top {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  width: 100%;
+  min-height: 294px;
+}
+
+.hero-main-title {
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.hero-supporting-text {
+  color: #fff;
+  font-weight: 400;
+}
+
+.what-you-get-header-title {
+  color: $color-gray-600;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.testimonial-container {
+  position: relative;
+  height: 176px;
+  top: 0;
+  max-width: 900px;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1rem;
+  border-left: 1rem solid $color-coolgray-500;
+  background: #fff;
+  box-shadow: 0px 20px 24px -4px rgba(16, 24, 40, 0.08),
+    0px 8px 8px -4px rgba(16, 24, 40, 0.03);
+
+  //* To change the border by type of teaser
+  &-entityCardCalculator {
+    border-left: 1rem solid $color-blue-dark-600 !important;
+  }
+
+
+}
+
+.testimonial-person {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.testimonial-profession {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.testimonial-field {
+  font-size: 1rem;
+  font-style: italic;
+}
+
+.step-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+@media screen and (max-width: 1024px) {
+  .teaser-view-container {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero-top-image {
+    max-width: 250px;
+    min-width: 200px;
+    max-height: 228px;
+    padding: 0;
+  }
+
+  .manage-teaser-header {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .testimonial-container {
+    width: 100%;
+    top: 0;
+  }
+
+}
+
+@media screen and (max-width: 1124px) {
+  .testimonial-container {
+    top: 0;
+    width: 100%;
+  }
+}
+
+@media screen and (min-width: 1200px) and (max-width: 1440px) {
+  .hero-main-title {
+    font-size: 1rem;
+  }
+  .hero-supporting-text {
+    font-size: 0.875rem;
+  }
+
+  .testimonial-container {
+    width: 100%;
+    top: 0;
+  }
+}
+
+@media screen and (min-width: 1921px) {
+  .hero-main-title {
+    font-size: 2rem;
+  }
+  .hero-supporting-text {
+    font-size: 14px;
+  }
+}
+
+@media screen and (max-width: 1920px) {
+  .hero-main-title {
+    font-size: 1.5rem;
+  }
+
+  .hero-supporting-text {
+    font-size: 14px;
+  }
+
+  .hero-top-image {
+    max-width: 615px;
+    max-height: 228px;
+  }
+
+  .what-you-get-header-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .what-you-get-image {
+    max-width: 515px;
+  }
+
+
+  .step-list-item {
+    font-size: 12px;
+  }
+
+  .testimonial-container {
+    width: 100%;
+    top: -1rem;
+  }
+}
+@media screen and (max-width: 950px) {
+  .hero-svg {
+    display: none;
+  }
+
+  /* Hide the hero image column */
+  .hero-top-image {
+    display: none;
+    padding: 0;
+  }
+
+  /* Make the left column take the full width */
+  .here-top-main-section .hero-text-left-side {
+    flex: 0 0 100%; /* Ensure the text section takes full width */
+    max-width: 100%; /* Full width for the text section */
+  }
+
+  /* have to use important to override he boostrap styles which uses col-xl-6, col-lg-6, etc */
+  .section-right-img {
+    display: none !important; /* Hide other columns if needed */
+  }
+}

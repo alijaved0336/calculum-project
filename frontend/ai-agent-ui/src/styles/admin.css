@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --orange:     #6366f1ff;
+  --orange-600: #5558e3;
+  --orange-50:  #eef2ff;
+  --blue:       #3B82F6;
+  --blue-50:    #EFF6FF;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

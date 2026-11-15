@@ -1,0 +1,191 @@
+// AP visual parity.
+//
+// AR runs Bootstrap 5 (via @ada/design-system) while AP is pinned to Bootstrap 4.6, so the two
+// cannot look the same by sharing a framework. This file closes the gap by matching AP's RENDERED
+// values, which were read from the running app (dev-app.hello-ada.com) rather than guessed from
+// its SCSS, so the numbers below are what AP actually paints.
+//
+// It is imported last, after bootstrap and the design-system layers, so it wins.
+//
+// Every value here is a copy of another app's decision, which means it will drift as AP changes.
+// The permanent fix is promoting AP's component styles into @ada/design-system so both apps read
+// one source; this file is the deliberate interim, and it is confined to one place so that
+// migration is a deletion rather than an excavation.
+
+// ---------------------------------------------------------------------------------------------
+// 1. The global zoom belongs to @ada/design-system, for every app.
+//
+// `fonts/_inter.scss` sets `html { zoom: 0.67 }` and AR inherits it like AP does. This file used
+// to override it back to natural scale; the override is gone at the project owner's direction
+// (PR 13828 review), and scale is now one decision made in one place for both apps.
+//
+// Removing it changed nothing on screen, which is worth recording: the override was written as
+// `zoom: normal`, and `normal` is not a value CSS `zoom` accepts (it takes a number or a
+// percentage). Browsers discarded the declaration, so the design system's 0.67 had been applying
+// to AR the whole time. The comment that stood here described AR as rendering 1.5x larger than
+// AP; it never did.
+//
+// The raw pixel constants below do NOT achieve parity today, and saying so is the point.
+//
+// AP pre-multiplies its authored values by 1/0.67, so its `1.49254px` border renders as 1px under
+// the shrink. The values here were read from AP RENDERED, so `$hairline: 1px` is the right target
+// number, and AR then renders it under the same 0.67 as 0.67px. Every raw-pixel constant in this
+// file therefore comes out about a third smaller than the AP value it was copied from.
+//
+// That is not new and this change did not cause it: AR has been under the shared zoom all along
+// (the override that claimed otherwise never parsed). It became visible only when the override
+// was removed and the false premise with it. Fixing it means pre-multiplying every constant here
+// by 1/0.67, which moves every border, radius and spacing value in AR at once. That is a visual
+// decision for the project owner rather than something to fold into a review fix, so it is
+// tracked as G-75 with the Kendo sizing question it belongs with.
+// ---------------------------------------------------------------------------------------------
+
+$hairline: 1px;
+
+// ---------------------------------------------------------------------------------------------
+// 2. Base typography and surfaces, taken from AP's computed body style.
+//    AP: color rgb(71,84,103) = #475467, background rgb(242,244,247) = #f2f4f7.
+//    These deliberately override the design-system tokens, whose palette (slate) is a different
+//    scale from AP's (gray).
+// ---------------------------------------------------------------------------------------------
+$ap-text: #475467;
+$ap-text-strong: #344054;
+$ap-page-bg: #f2f4f7;
+$ap-surface: #ffffff;
+$ap-border: #eaecf0;
+$ap-border-strong: #ced4da;
+
+:root {
+  --color-text-1: #{$ap-text};
+  --bg-page: #{$ap-page-bg};
+  --bg-surface: #{$ap-surface};
+  --bg-surface-subtle-1: #{$ap-page-bg};
+  // White, not the page grey: the design-system content box paints its outer surface from this
+  // token in a SCOPED style, which outranks anything set here by class. Setting the token is how
+  // that box becomes AP's white card instead of losing a specificity fight over it.
+  --bg-surface-subtle-2: #{$ap-surface};
+  --border-color-default: #{$ap-border};
+  --border-color-default-2: #{$ap-border-strong};
+  --font-family-base: 'Inter var', sans-serif;
+}
+
+body {
+  font-family: 'Inter var', sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  color: $ap-text;
+  background-color: $ap-page-bg;
+}
+
+// ---------------------------------------------------------------------------------------------
+// 3. Boxes. AP's card: 8px radius, a hairline #eaecf0 border and a soft shadow.
+//    Bootstrap 5's defaults differ on all three, which is the "boxes look different" part.
+// ---------------------------------------------------------------------------------------------
+@mixin ap-card {
+  background-color: $ap-surface;
+  border: $hairline solid $ap-border;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.1);
+}
+
+.card,
+.content-box,
+.content-box__body {
+  @include ap-card;
+}
+
+.card {
+  padding: 0;
+}
+
+.card-body {
+  padding: 16px;
+}
+
+// The design-system content box paints its own subtle background and inner border; flatten it to
+// AP's single card surface so a box does not read as a box inside a box.
+.content-box {
+  padding: 0;
+
+  &__body {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    padding: 16px;
+  }
+
+  &__header {
+    padding: 12px 16px;
+    border-bottom: $hairline solid $ap-border;
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
+// 4. Tables. AP's headers are small, bold and quiet; Bootstrap 5's are larger with heavier rules.
+// ---------------------------------------------------------------------------------------------
+.table {
+  color: $ap-text;
+  border-color: $ap-border;
+  margin-bottom: 0;
+
+  > :not(caption) > * > * {
+    padding: 8px 12px;
+    border-bottom-width: $hairline;
+    border-bottom-color: $ap-border;
+  }
+
+  thead th {
+    font-size: 12.8px;
+    font-weight: 700;
+    color: $ap-text-strong;
+    border-bottom-width: $hairline;
+    text-transform: none;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child > * {
+    border-bottom-width: 0;
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
+// 5. Controls. AP's buttons and inputs are 6px-radius and hairline-bordered, not Bootstrap 5's
+//    0.375rem with its heavier focus ring.
+// ---------------------------------------------------------------------------------------------
+.btn,
+.form-control,
+.form-select {
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-control,
+.form-select {
+  border: $hairline solid $ap-border-strong;
+  color: $ap-text;
+  padding: 6px 12px;
+
+  &:focus {
+    border-color: $ap-border-strong;
+    // Bootstrap 5's default glow is much larger than anything in AP.
+    box-shadow: 0 0 0 2px rgba(70, 84, 103, 0.12);
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
+// 6. Headings. AP's large figure is 48px/600 in the strong text colour.
+// ---------------------------------------------------------------------------------------------
+h1, h2, h3, h4, h5, h6,
+.ds-display {
+  color: $ap-text-strong;
+  font-weight: 600;
+}
+
+// AP's small uppercase-ish field labels above its topbar controls.
+.label-topbar,
+.form-label {
+  font-size: 12px;
+  color: $ap-text;
+  margin-bottom: 2px;
+}

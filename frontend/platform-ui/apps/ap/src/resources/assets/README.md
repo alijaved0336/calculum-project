@@ -1,0 +1,3 @@
+- All icons should be placed in `src/resources/assets/images/icons` folder.
+- SVG should be transformed to vue files.
+- Use svg as vue components not as img elements.

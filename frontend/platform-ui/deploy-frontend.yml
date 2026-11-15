@@ -1,0 +1,401 @@
+# Deploy Pipeline for Front-End (Multi-Environment)
+#
+# DISABLED: Front-End deploys are now handled per-app by the monorepo pipelines:
+#   - apps/ap/deploy/deploy-frontend-ap.yml
+#   - apps/ar/deploy/deploy-frontend-ar.yml
+# This root pipeline no longer runs automatically. It is kept for reference and
+# for emergency manual runs only.
+#
+# Legacy behaviour (multi-environment):
+# - master → DEV environment
+# - staging → PRE environment
+# - production → PRO environment
+# Migrated from classic Azure DevOps pipeline to YAML
+
+trigger: none  # Disabled - superseded by per-app pipelines under apps/*/deploy/
+
+pr: none  # No PR triggers (pr-validation.yml handles PR validation)
+
+# Build name format: BRANCH-revisionNumber (e.g., master.1, staging.5)
+# Environment prefix will be determined at runtime
+name: $(Build.SourceBranchName).$(Rev:r)
+
+pool:
+  name: Ubuntu-Aws
+
+variables:
+- group: Shared-Global-Vars
+- group: 'deploySecurityAWS - Azure'
+
+# Environment-specific variable groups loaded via template expression
+- ${{ if eq(variables['Build.SourceBranchName'], 'production') }}:
+  - group: Deployment-Pro
+- ${{ elseif eq(variables['Build.SourceBranchName'], 'staging') }}:
+  - group: Deployment-Pre
+- ${{ else }}:
+  - group: Deployment-Dev
+
+# Environment identifier (DEV/PRE/PRO) - determined at compile-time
+- name: ENVIRONMENT
+  ${{ if eq(variables['Build.SourceBranchName'], 'production') }}:
+    value: 'PRO'
+  ${{ elseif eq(variables['Build.SourceBranchName'], 'staging') }}:
+    value: 'PRE'
+  ${{ else }}:
+    value: 'DEV'
+
+stages:
+#==============================================================================
+# STAGE 1: Build and Test
+#==============================================================================
+- stage: Build_Test
+  displayName: 'Build and Test'
+  jobs:
+  - job: Build_Test_Job
+    displayName: 'Build and Test Job'
+    steps:
+    # Step 0: Explicit checkout with full history so vue.config.js can run
+    # `git rev-parse --short HEAD` for the Sentry release id, and so the Sentry
+    # webpack plugin's setCommits.auto can walk commits since the previous release.
+    - checkout: self
+      fetchDepth: 0
+      displayName: 'Checkout repository (full history)'
+
+    # Step 1: Copy environment files from S3
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Step 1: Copy environment files from S3"
+        echo "========================================="
+        echo "Environment: $(ENVIRONMENT)"
+        echo "Copying env.ts and kendo-ui-license.txt from S3..."
+
+        aws s3 cp s3://s3sync-calculum/$(ENV_PATH)/front-end/env.ts src/services/api/env.ts
+        echo "✓ env.ts copied from $(ENV_PATH)"
+
+        aws s3 cp s3://s3sync-calculum/$(ENV_PATH)/front-end/kendo-ui-license.txt kendo-ui-license.txt
+        echo "✓ kendo-ui-license.txt copied from $(ENV_PATH)"
+
+        echo "========================================="
+      displayName: 'Copy files from S3'
+      retryCountOnTaskFailure: 1
+      failOnStderr: false
+
+    # Step 2: Install dependencies and build application
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Step 2: Build Application"
+        echo "========================================="
+        echo "Node version: $(node -v)"
+        echo "NPM version: $(npm -v)"
+        echo ""
+
+        echo "Cleaning node_modules to prevent corrupted cache..."
+        rm -rf node_modules
+        echo "✓ node_modules cleaned"
+
+        # Compute the Sentry release id (matches vue.config.js: <version>+<short-sha>)
+        # and expose it as an output variable so the Deploy stage can emit the
+        # deploy marker for the same release. vue.config.js recomputes the same
+        # string at build time, so the runtime tag and source-map upload stay consistent.
+        PKG_VERSION=$(node -p "require('./package.json').version")
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        RELEASE_VERSION="${PKG_VERSION}+${SHORT_SHA}"
+        echo "Release: ${RELEASE_VERSION}"
+        echo "##vso[task.setvariable variable=RELEASE_VERSION;isOutput=true]${RELEASE_VERSION}"
+
+        echo "Running npm ci..."
+        npm ci
+        echo "✓ npm ci completed"
+
+        echo ""
+        echo "Running build with Sentry..."
+        export SENTRY_AUTH_TOKEN=$(SENTRY_TOKEN)
+        npm run build
+        echo "✓ Build completed"
+
+        echo "========================================="
+      name: BuildStep
+      displayName: 'Install and Build'
+      retryCountOnTaskFailure: 1
+      failOnStderr: false
+
+    # Step 3: Execute tests with coverage
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Step 3: Execute Tests"
+        echo "========================================="
+
+        npm run test:ci
+        echo "✓ Tests completed"
+
+        echo "========================================="
+      displayName: 'Execute Tests'
+      failOnStderr: false
+      continueOnError: true
+
+    # Step 4: Publish test results
+    - task: PublishTestResults@2
+      displayName: 'Publish Test Results'
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: 'test-results/junit.xml'
+        failTaskOnFailedTests: false
+
+    # Step 5: Publish code coverage results
+    - task: PublishCodeCoverageResults@2
+      displayName: 'Publish Code Coverage Results'
+      condition: succeededOrFailed()
+      inputs:
+        summaryFileLocation: '$(System.DefaultWorkingDirectory)/test-results/coverage/cobertura-coverage.xml'
+        pathToSources: '$(System.DefaultWorkingDirectory)/src'
+
+    # Step 6: Publish build artifacts for deployment stage
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Build Artifacts'
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/dist'
+        artifact: 'dist'
+        publishLocation: 'pipeline'
+
+#==============================================================================
+# STAGE 2: SonarQube Code Analysis
+# Re-runs build + tests with coverage in its own agent (pattern used by
+# Calculum.Api.Ada) so the lcov.info report is produced in the same workspace
+# where SonarQubeAnalyze@7 reads it from (sonar-project.properties points to
+# test-results/coverage/lcov.info).
+#==============================================================================
+- stage: Sonar
+  displayName: 'SonarQube Code Analysis'
+  dependsOn: Build_Test
+  condition: and(succeeded(), eq(lower(variables['SONAR_EXECUTE']), 'true'))
+  jobs:
+  - job: Code_Analysis
+    displayName: 'Run SonarQube Analysis'
+    pool:
+      name: Ubuntu-Aws
+      demands: java
+    steps:
+    # Step 1: Copy env.ts from S3 (needed for the tests to import the config)
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Sonar Step 1: Copy env.ts from S3"
+        echo "========================================="
+        aws s3 cp s3://s3sync-calculum/$(ENV_PATH)/front-end/env.ts src/services/api/env.ts
+        echo "✓ env.ts copied from $(ENV_PATH)"
+      displayName: 'Copy env.ts from S3'
+      retryCountOnTaskFailure: 1
+      failOnStderr: false
+
+    # Step 2: Prepare SonarQube analysis (uses sonar-project.properties)
+    - task: SonarQubePrepare@7
+      displayName: 'Prepare analysis on SonarQube Server'
+      inputs:
+        SonarQube: SonarQube
+        scannerMode: cli
+        configMode: file
+        configFile: 'sonar-project.properties'
+
+    # Step 3: Install dependencies and build (needed for Vue CLI + vitest to run)
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Sonar Step 2: Install dependencies"
+        echo "========================================="
+        rm -rf node_modules
+        npm ci
+        echo "✓ npm ci completed"
+      displayName: 'Install Dependencies'
+      retryCountOnTaskFailure: 1
+
+    # Step 4: Run tests with coverage (generates test-results/coverage/lcov.info)
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Sonar Step 3: Execute tests with coverage"
+        echo "========================================="
+        npm run test:ci
+        echo "✓ Tests completed"
+      displayName: 'Execute Tests with Coverage'
+      continueOnError: true
+
+    # Step 4.5: Validate & normalize lcov.info before Sonar reads it
+    # - Fails loudly if the report is missing/empty (better than a silent 0%)
+    # - Prints sample paths so we can confirm Sonar will map them to sources
+    # - Strips Vue SFC query strings (src/foo.vue?vue&type=script) which
+    #   @vitest/coverage-v8 sometimes emits and Sonar cannot resolve
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Sonar Step 3.5: Validate & normalize lcov.info"
+        echo "========================================="
+        LCOV="test-results/coverage/lcov.info"
+
+        if [ ! -s "$LCOV" ]; then
+          echo "##vso[task.logissue type=error]lcov.info is missing or empty at $LCOV"
+          echo "Contents of test-results/coverage/:"
+          ls -la test-results/coverage/ 2>/dev/null || echo "(directory does not exist)"
+          exit 1
+        fi
+
+        echo "lcov.info size:"
+        ls -lh "$LCOV"
+
+        FILE_COUNT=$(grep -c '^SF:' "$LCOV" || true)
+        echo "Files covered in lcov: $FILE_COUNT"
+
+        if [ "$FILE_COUNT" -eq 0 ]; then
+          echo "##vso[task.logissue type=error]lcov.info has no SF: entries — coverage will be 0%"
+          exit 1
+        fi
+
+        echo "Sample paths (first 5):"
+        grep '^SF:' "$LCOV" | head -5
+
+        # Normalize Vue SFC query-string suffixes so Sonar maps them to real files
+        # Example: SF:src/foo.vue?vue&type=script&setup=true&lang.ts  →  SF:src/foo.vue
+        BEFORE=$(grep -c '^SF:.*\.vue?' "$LCOV" || true)
+        if [ "$BEFORE" -gt 0 ]; then
+          echo "Normalizing $BEFORE Vue SFC paths with query strings..."
+          sed -i -E 's|^(SF:.*\.vue)\?[^[:space:]]*|\1|' "$LCOV"
+          echo "✓ Normalized. Sample after:"
+          grep '^SF:.*\.vue' "$LCOV" | head -3
+        else
+          echo "No Vue SFC query-string paths to normalize."
+        fi
+      displayName: 'Validate & Normalize Coverage Report'
+
+    # Step 5: Run SonarQube analysis (reads lcov.info from test-results/coverage/)
+    - task: SonarQubeAnalyze@7
+      displayName: 'Run Code Analysis'
+
+    # Step 6: Publish Quality Gate Result
+    - task: SonarQubePublish@7
+      displayName: 'Publish Quality Gate Result'
+      inputs:
+        checkQualityGate: true
+
+    # Step 7: Cleanup — log the resolved path before deleting to prevent
+    # accidental removal if $(Build.SourcesDirectory) ever resolves unexpectedly
+    - script: |
+        echo "Cleaning build directory: $(Build.SourcesDirectory)"
+        if [ -z "$(Build.SourcesDirectory)" ] || [ "$(Build.SourcesDirectory)" = "/" ]; then
+          echo "Refusing to clean an empty or root path"
+          exit 1
+        fi
+        sudo rm -rf "$(Build.SourcesDirectory)"/*
+      workingDirectory: /home/ubuntu
+      displayName: 'Clean Directory'
+      condition: always()
+      continueOnError: true
+
+#==============================================================================
+# STAGE 3: Deploy to S3 (with Environment approval gates)
+#==============================================================================
+- stage: Deploy
+  displayName: 'Deploy to S3'
+  dependsOn: Build_Test
+  # Map the RELEASE_VERSION output var from the Build_Test stage. A runtime expression
+  # $[ ... ] is ONLY evaluated in a variables: block (here at stage level, the documented
+  # form for a deployment job consuming a previous stage's output) — NOT inside a step env:.
+  variables:
+    RELEASE_VERSION: $[ stageDependencies.Build_Test.Build_Test_Job.outputs['BuildStep.RELEASE_VERSION'] ]
+  jobs:
+  - deployment: Deploy_To_S3
+    displayName: 'Deploy to S3'
+    # Environment selection using Build.SourceBranchName (available at compile-time)
+    ${{ if eq(variables['Build.SourceBranchName'], 'production') }}:
+      environment: Prod
+    ${{ elseif eq(variables['Build.SourceBranchName'], 'staging') }}:
+      environment: Pre
+    ${{ else }}:
+      environment: Dev
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: none  # Disable automatic artifact downloads to avoid duplicates
+          # Step 1: Download build artifacts
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Build Artifacts'
+            inputs:
+              artifact: 'dist'
+              path: '$(Pipeline.Workspace)/dist'
+
+          # Step 2: Copy built files to S3 bucket
+          - script: |
+              set -e
+              echo "========================================="
+              echo "Deploy: Copy Files to S3"
+              echo "========================================="
+              echo "Environment: $(ENVIRONMENT)"
+              echo "Target bucket: s3://$(AWS_S3_BUCKET_APP)"
+
+              echo "Removing old files from S3..."
+              aws s3 rm --recursive s3://$(AWS_S3_BUCKET_APP)
+
+              echo "Syncing dist folder to S3..."
+              aws s3 sync $(Pipeline.Workspace)/dist s3://$(AWS_S3_BUCKET_APP)/dist
+              echo "✓ Files uploaded to S3"
+
+              echo "========================================="
+            displayName: 'Copy Files to S3'
+            retryCountOnTaskFailure: 1
+            failOnStderr: false
+
+          # Step 3: Invalidate CloudFront cache
+          - script: |
+              set -e
+              echo "========================================="
+              echo "Deploy: Invalidate CloudFront"
+              echo "========================================="
+              echo "Environment: $(ENVIRONMENT)"
+              echo "Distribution: $(AWS_CLOUDFRONT_ID)"
+
+              aws cloudfront create-invalidation --distribution-id $(AWS_CLOUDFRONT_ID) --paths '/*'
+              echo "✓ CloudFront invalidation created"
+
+              echo "========================================="
+            displayName: 'Invalidate CloudFront'
+            retryCountOnTaskFailure: 1
+            failOnStderr: false
+
+          # Step 4: Emit Sentry deploy marker for this environment.
+          # The release + source maps were already created during Build_Test by
+          # the webpack plugin; here we only record the deploy event so Sentry can
+          # show the release as deployed to DEV/PRE/PRO.
+          - script: |
+              set -e
+              echo "========================================="
+              echo "Deploy: Sentry Release Deploy Marker"
+              echo "========================================="
+              echo "Release: ${RELEASE_VERSION}"
+              echo "Environment: $(ENVIRONMENT)"
+
+              if [ -z "${RELEASE_VERSION}" ]; then
+                echo "##vso[task.logissue type=error]RELEASE_VERSION is empty; cannot record deploy marker"
+                exit 1
+              fi
+
+              if ! command -v sentry-cli &> /dev/null; then
+                curl -sL https://sentry.io/get-cli/ | bash
+              fi
+
+              export SENTRY_ORG=calculum
+              export SENTRY_PROJECT=ada-vue
+
+              sentry-cli releases deploys "${RELEASE_VERSION}" new -e "$(ENVIRONMENT)"
+              echo "✓ Deploy marker recorded"
+
+              echo "========================================="
+            displayName: 'Sentry Deploy Marker'
+            condition: succeeded()
+            # Non-blocking: the app is already live (S3 + CloudFront) by this point, so a
+            # telemetry-marker failure must not fail the deploy. Errors are still annotated.
+            continueOnError: true
+            env:
+              SENTRY_AUTH_TOKEN: $(SENTRY_TOKEN)
+

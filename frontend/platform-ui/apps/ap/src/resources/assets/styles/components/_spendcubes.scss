@@ -1,0 +1,159 @@
+$color-grade-1:	#FF2749;
+$color-grade-2:	#D7273A;
+$color-grade-3:	#951B2B;
+$color-grade-4: #6A1522;
+$color-text: #fff;
+
+.spend-cubes {	
+	position: relative;
+	font-size: $font-md;
+	color: $color-text;
+	width: 100%;
+	padding-left: 5px;
+	.graphic {
+		overflow: hidden;
+		padding-bottom: $margin;
+	}
+	.labels {
+		background-color: $color-gray-light;
+		color: $body-color;
+		height: $margin;
+		width: 100%;
+		left: 0;
+		display: flex;
+		&-col {
+			flex: 0 0 25px;
+			max-width: 25px;
+			margin-bottom: -99999px;
+			padding-bottom: 99999px;
+			.low {
+				transform: rotate(-90deg);
+				position: absolute;
+				top: calc(100% - 150px);
+				left: -10px;
+			}
+			.medium {
+				transform: rotate(-90deg);
+				position: absolute;
+				top: 40%;
+				left: -75px;
+			}
+			.high {
+				transform: rotate(-90deg);
+				position: absolute;
+				top: $margin;
+				left: -10px;
+			}
+		}
+		&-row {
+			position: absolute;
+			@include isFlex(center, space-between);
+    		padding: 0 $margin*2;
+		}
+	}
+	.grade-1 {
+		background-color: $color-grade-1;
+	}
+	.grade-2 {
+		background-color: $color-grade-2;
+	}
+	.grade-3 {
+		background-color: $color-grade-3;
+	}
+	.grade-4 {
+		background-color: $color-grade-4;
+	}
+	&__item {
+		position: relative;
+		border-radius: $border__radius;
+		padding: $margin;
+		margin: 5px 2.5px;
+		.number {
+			position: absolute;
+			@include isFlex(center);
+			top: $margin__bootstrap;
+			right: $margin__bootstrap;
+			border: 2px solid $color-text;
+			border-radius: 50%;
+			width: $margin;
+			height: $margin;			
+		}
+	}
+	&__body {
+		margin-top: $margin;
+	}
+	&__row {
+		display: flex;
+		justify-content: space-between;
+	}
+	.col-4 {
+		padding: 0;
+	}
+	.legend {
+		@include isFlex(center, center);
+		margin-top: $margin__bootstrap;
+		width: 90%;;
+		.color {
+			position: relative;
+			width: $margin*3;
+			height: $margin;
+
+			margin-left: $margin__bootstrap;
+			margin-right: $margin__bootstrap;
+			.grade {
+				content: '';
+				position: absolute;
+				width: $margin*3;
+				height: $margin;
+			}
+			div {
+				position: absolute;
+				top: $margin;
+				color: $body-color;
+				width: 100%;
+				text-align: center;
+			}
+		}
+	}
+}
+
+
+
+// Table
+
+.spend-table {
+	.nav-tabs {
+		font-size: $font-md;
+		.nav-link {
+			color: $body-color;
+			border-color: $color-gray-light;
+			width: calc(100% / 3);
+			text-align: center;
+			&.active {
+				background-color: $shadow;
+			}
+			&:hover {
+				background-color: $color-gray-ultralight;
+			}
+		}
+	}
+	.tab-content {
+		border-color: $color-gray-light;
+		background-color: $shadow;
+		padding: 5px;		
+	}
+	table {
+		background-color: $body-bg;
+		thead {
+			th {
+				border-bottom: 2px solid $body-color;
+			}
+		}
+	}
+	.card-auto {
+		.card {
+			padding-bottom: $margin__bootstrap;
+			margin-bottom: $margin__bootstrap;
+		}
+	}	
+}

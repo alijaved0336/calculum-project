@@ -1,0 +1,730 @@
+@import "../variables/_colors.scss";
+
+.blur-effect{
+  filter: blur(3px);
+  opacity: 0.95;
+}
+
+.btn-h-64 {
+  height: 64px;
+}
+
+.shadow-none {
+  box-shadow: none;
+  &:hover {
+    box-shadow: none;
+  }
+}
+
+
+.on-hover-svg{
+  &:hover {
+    svg {
+      
+      fill: $color-primary-500 !important;
+    
+    }
+  }
+}
+
+.negative-margin-for-advanced-tooltip{
+  margin-top: -10px;
+}
+
+.custom-header-for-grid-title{
+  color: #667085;
+  font-size: 0.75rem;
+  font-family: 'Inter', 'Open Sans', sans-serif;
+  font-weight: 500;
+  line-height: 1.125rem;
+}
+// for program view, for program name and date
+.program-user-creation-related-icons {
+  max-width: 16px;
+  color: $color-gray-500;
+  margin-right: 0.5rem;
+}
+
+.dividers-program-user-creation{
+  margin-right: 0.5rem;
+}
+
+.high-level {
+  color: $color-green-500;
+}
+.medium-level {
+  color: $color-warning-500;
+}
+
+.low-level {
+  color: $color-primary-500;
+}
+.empty-level {
+  color: $color-gray-400;
+}
+
+.error-input {
+  border: 1px solid $color-error-500;
+}
+
+.custom_cursor_pointer {
+  cursor: pointer;
+}
+
+.options-text {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.custom-font-text-1 {
+  font-size: 1em;
+}
+
+.custom-font-text-2 {
+  font-size: 2em;
+}
+
+.custom_options_box {
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.custom-width-icon {
+  width: 40px;
+}
+
+//for the ellipsis menu dropdown
+.general-menu-options {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 250px;
+  padding: 10px 40px 10px 10px;
+  height: 70px;
+  margin-top: 0;
+  right: 0;
+  top: 50px;
+  z-index: 1041;
+  position: absolute;
+  border-color: #dee2e6;
+  color: #000000;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.03), 0 4px 5px 0 rgba(0, 0, 0, 0.04);
+
+  span {
+    color: $color-gray-400;
+    font-size: 16px;
+    &:hover {
+    cursor: pointer;
+    color: $color-primary-500;
+    }
+  }
+}
+
+.badge_container {
+  border: 1px solid $color-gray-400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 65px;
+  background: $color-gray-modern;
+  padding: 5px 10px;  
+  min-width: 50px;
+  // max-width: 347px;
+}
+
+.badge_container,
+.badge_container * {
+  cursor: pointer;
+}
+
+
+.btn_custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 199px;
+  min-width: 199px;
+  border: 1px solid $color-gray-900;
+  border-radius: 8px;
+  height: 40px;
+  box-shadow: 0px 1px 2px #1018280d;
+  span {
+    text-transform: capitalize;
+    letter-spacing: 0.28px;
+  }
+}
+
+.btn-nxt {
+  font-size: 1rem;
+  letter-spacing: 1px;
+  text-transform: capitalize;
+  border-radius: 0.5rem;
+  padding: 0 30px;
+  transition: all 0.3s ease;
+  color: #ffffff;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  min-width: 199px;
+  height: 40px !important;
+  border: 1px solid $color-brand;
+}
+
+//- TODO: Is the same style as btn-clean.active
+.btn-clear {
+  font-weight: 500;
+  padding: 0 50px !important;
+  min-height: 48px !important;
+  height: 48px !important;
+  color: $color-gray-700 !important;
+  background: $color-white !important;
+  border: 1px solid $color-gray-300 !important;
+  &:hover {
+    color: black !important;
+    border-color: black !important;
+
+    span {
+      color: white !important;
+    }
+  }
+}
+
+.custom_row_hover {
+  
+  cursor: pointer !important;
+  &:hover {
+    border-left: 5px solid $color-primary-400;
+    cursor: pointer !important;
+    -moz-box-shadow: -1px 12px 5px 0px rgba(16, 24, 40, 0.1);
+    box-shadow: -1px 12px 5px 0px rgba(16, 24, 40, 0.1);
+  }
+  &:active {
+    cursor: grab;
+  }
+}
+
+.field_title {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.icon_drag_drop {
+  width: 16px;
+  height: 16px;
+  color: $color-gray-400;
+  &:hover {
+    cursor: grab;
+  }
+  &:-moz-drag-over {
+    cursor: grab;
+  }
+  &:active {
+    cursor: grab;
+  }
+}
+
+.remove_icon_badge_container {
+  color: $gray400;
+  width: 12px !important;
+  height: 12px !important;
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.indigo-category-level {
+  background: $color-indigo-100;
+  span {
+    color: $color-indigo-700;
+  }
+}
+
+.blue-category-level {
+  background: $color-bluelight-100;
+  span {
+    color: $color-bluelight-700;
+  }
+}
+
+.pink-category-level {
+  background: $color-pink-100;
+  span {
+    color: $color-pink-700;
+  }
+}
+
+.clear-all {
+  text-transform: capitalize;
+  font-weight: 500;
+  border: 1px solid $color-gray-300;
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+.conditions_container {
+  display: flex;
+  flex-direction: row;
+  gap: 1px;
+  flex-wrap: wrap;
+  width: calc(100vw - 450px);
+}
+.conditions_container_compare {
+  display: flex;
+  flex-direction: row;
+  gap: 1px;
+  flex-wrap: wrap;
+  width: 100vw;
+}
+
+.general-container-condition {
+  // gap: 6px;
+  margin-left: -10px;
+  margin-bottom: 1.5em;
+}
+
+.general-container-condition-compare {
+  //margin-left: -1px;
+  margin-bottom: 10px;
+}
+
+.ghost-text {
+  opacity: 0.2;
+  cursor: default;
+}
+
+.chart-legend-container-gap{
+  gap: 24px;
+}
+
+.chart-legend-circle {
+  border-radius: 50%;
+  
+  &.small {
+    height: .5rem;
+    width: .5rem;
+  }
+  &.medium {
+    height: 1rem;
+    width: 1rem;
+  }
+}
+
+.chart-legend-text{
+  font-size: 12px;
+  color: $color-gray-600;
+}
+
+
+.level-category-container {
+  position: relative;
+  margin: 0;
+  top: 25px;
+  left: 80px;
+  text-align: center;
+  width: fit-content;
+  padding: 4px 11px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 16px;
+  span {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+
+// FOR TOOLTIP TD CELL
+.ellipsis_tooltip_custom_text {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #475467;
+  font-size: 0.75rem;
+  font-family: 'Inter', 'Open Sans', sans-serif;
+  font-weight: 500;
+  line-height: 1.25rem;
+  &.center {
+    text-align: center;
+  }
+}
+
+.ellipsis_custom_with_image {
+  width: calc(100% - 10px);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.ellipsis_custom_flags {
+  width: calc(100% - 40px);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;  
+}
+
+
+.ellipsis_custom{
+  width: calc(100% - 10px);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+  &.center {
+    text-align: center;
+  }
+}
+
+.ellipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  min-width: 50px;
+  max-width: 295px;
+}
+
+.ellipsis_p {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 12px;
+  min-width: 50px;
+  max-width: 295px;
+}
+
+.trash_icon {
+  height: 24px;
+  width: 24px;
+}
+@media only screen and (min-width: 1281px) {
+  .program_name {
+    width: 30em;
+    .ellipsis,
+    .ellipsis_p {
+      max-width: 30em;
+    }
+    span.h3,
+    p.h3 {
+      font-size: 2.1em;
+    }
+  }
+}
+
+@media only screen and (max-width: 1280px) {
+  .program_name {
+    width: 25em;
+    .ellipsis,
+    .ellipsis_p {
+      max-width: 25em;
+    }
+    span.h3,
+    p.h3 {
+      font-size: 1.7em;
+    }
+  }
+}
+@media only screen and (max-width: 1024px) {
+  .program_name {
+    width: 18em;
+    .ellipsis,
+    .ellipsis_p {
+      max-width: 18em;
+    }
+    span.h3,
+    p.h3 {
+      font-size: 1.5em;
+    }
+  }
+}
+
+*::selection,
+span::selection,
+p::selection,
+h1::selection,
+h2::selection,
+h3::selection,
+h4::selection,
+h5::selection,
+h6::selection {
+  color: $color-black;
+}
+
+// ? - Remove this
+%icon-svg__button-hover {
+  &:hover {
+    fill: $color-red;
+    cursor: pointer;
+  }
+}
+
+// ? - Remove this
+.icon-svg__button {
+  cursor: pointer;
+  fill: $color-black;
+  transition: all ease 0.3s;
+
+  &-12 {
+    width: 12px;
+    height: 12px;
+    &-disabled {
+      width: 12px;
+      height: 12px;
+      fill: $color-gray-500;
+      @extend %icon-svg__button-hover;
+    }
+    @extend %icon-svg__button-hover;
+  }
+  &-18 {
+    width: 18px;
+    height: 18px;
+    &-disabled {
+      width: 18px;
+      height: 18px;
+      fill: $color-gray-500;
+      @extend %icon-svg__button-hover;
+    }
+    @extend %icon-svg__button-hover;
+  }
+  &-14 {
+    width: 14px;
+    height: 14px;
+    &-disabled {
+      width: 14px;
+      height: 14px;
+      fill: $color-gray-500;
+      @extend %icon-svg__button-hover;
+    }
+    @extend %icon-svg__button-hover;
+  }
+  &-24 {
+    width: 24px;
+    height: 24px;
+    &-disabled {
+      width: 24px;
+      height: 24px;
+      fill: $color-gray-500;
+      @extend %icon-svg__button-hover;
+    }
+    @extend %icon-svg__button-hover;
+  }
+  &-disabled {
+    fill: $color-gray-500;
+    @extend %icon-svg__button-hover;
+  }
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.link {
+  cursor: pointer;
+  span {
+    color: $color-black;
+  }
+  &:hover {
+    span {
+      color: $color-red !important;
+    }
+  }
+}
+
+.link_sec {
+  cursor: pointer;
+  span {
+    color: $color-gray-500;
+  }
+  &:hover {
+    span {
+      color: $color-brand-hover !important;
+    }
+  }
+}
+
+.form-group { 
+  span {
+    color: $color-black;
+    opacity: 1 !important;
+  }
+  sup {
+    color: $color-red;
+  }
+  select {
+    color: $color-black;
+    option {
+      color: $color-black;
+    }
+  }
+}
+
+.custom-select {
+  border: 1px solid $color-gray-300;
+}
+
+.form-control {
+  border: 1px solid $color-gray-300;
+  &.input-red-border {
+    border: 2px solid $color-error-500;
+    }
+  span {
+    color: $color-black;
+    opacity: 1 !important;
+  }
+  sup {
+    color: $color-red;
+  }
+  select {
+    color: $color-black;
+    option {
+      color: $color-black;
+    }
+  }
+}
+
+.form-control-placeholder::placeholder {
+  color: $color-gray-600 !important;
+}
+
+.form-control::placeholder {
+  color: #667085 !important;
+}
+
+.btn-action-with-icon {
+  border: none;
+  background: $color-white;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  transition: all ease 0.3s;
+  cursor: pointer;
+
+  span {
+    color: $color-black;
+    font-size: 16px;
+  }
+
+  svg {
+    fill: $color-black;
+    margin-right: 10px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    span {
+      color: $color-red !important;
+    }
+    svg {
+      fill: $color-red;
+    }
+  }
+}
+
+.btn-action-with-icon__grey {
+  @extend .btn-action-with-icon;
+
+  span {
+    color: $color-gray-500;
+  }
+
+  svg {
+    fill: $color-gray-500;
+  }
+}
+
+.btn-action-with-icon__grey-09 {
+  @extend .btn-action-with-icon__grey;
+  span {
+    font-size: 0.9em !important;
+  }
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.text-color-red {
+  color: $color-red;
+}
+
+.font-size-08 {
+  font-size: 0.8em;
+}
+
+.font-size-09 {
+  font-size: 0.9em;
+}
+
+.content-top__fix-margin {
+  margin-left: 0;
+
+  .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+
+    &:first-child {
+      padding-left: 0 !important;
+    }
+  }
+
+  .pl-3 {
+    padding-left: 0 !important;
+  }
+}
+
+.custom-container-for-grid{
+  height: fit-content;
+}
+
+.content-top__fixed-spend-tabs {
+  position: fixed;
+  z-index: 97;
+  width: calc(100% - 170px);
+  background-color: $color-gray-100;
+  top: 272px;
+  padding: 20px 0px 8px 0px;
+}
+
+
+.width-fit-content {
+  width: fit-content;
+}
+
+.back-white {
+  background-color: inherit !important;
+}
+
+.form-group span {
+  color: $color-gray-400 !important;
+}
+
+.form-group span.error {
+  margin-top: 5px;
+  color: var(--error-500, #f04438) !important;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.form-group select + span {
+  color: $color-gray-400 !important;
+}
+
+.k-master-row .k-grid-content-sticky {
+  color: $color-gray-700 !important;
+}
+
+.form-group select {
+  color: $color-gray-500 !important;
+}
+
+.k-grid {
+  color: $color-gray-700 !important;
+}

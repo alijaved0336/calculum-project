@@ -1,0 +1,9 @@
+.box-number {
+	background-color: $color-gray-50;
+	border-radius: $border__radius;
+	padding: $margin__bootstrap;
+	.number {
+		font-size: 6rem;
+		font-weight: bold;
+	}
+}

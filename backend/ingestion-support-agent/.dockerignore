@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ragas_kg_cache/
+.git/
+.env
+# Service-account keys must never be baked into the image (use ADC / mounted secret at runtime)
+*-key.json
+calculum-storage-sa-key.json
+data/
+logs/
+tests/
+*.md

@@ -1,0 +1,60 @@
+# Build Design System Storybook and publish it as a downloadable CI artifact.
+# Azure DevOps: create a pipeline from this YAML once (Pipelines → New → Existing YAML file).
+#
+# After a successful run:
+#   Pipeline run → Artifacts → storybook-design-system → Download
+# Then follow packages/design-system/STORYBOOK.md to open it locally.
+
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - packages/design-system/**
+      - pnpm-lock.yaml
+      - package.json
+      - pnpm-workspace.yaml
+
+pr: none
+
+name: storybook.$(Build.SourceBranchName).$(Rev:r)
+
+pool:
+  name: Ubuntu-Aws
+
+steps:
+  - checkout: self
+    displayName: 'Checkout repository'
+
+  - script: |
+      set -e
+      echo "Node version: $(node -v)"
+
+      export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+      npm install -g pnpm@9 --quiet
+      echo "##vso[task.prependpath]$HOME/.npm-global/bin"
+      export PATH="$HOME/.npm-global/bin:$PATH"
+      echo "pnpm version: $(pnpm -v)"
+
+      pnpm install --frozen-lockfile
+      echo "✓ pnpm install completed"
+
+      pnpm build-storybook
+      echo "✓ Storybook build completed"
+
+      if [ ! -f packages/design-system/storybook-static/index.html ]; then
+        echo "ERROR: storybook-static/index.html was not produced"
+        exit 1
+      fi
+    displayName: 'Install and build Storybook'
+    workingDirectory: '$(Build.SourcesDirectory)'
+    failOnStderr: false
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Storybook artifact'
+    inputs:
+      targetPath: '$(Build.SourcesDirectory)/packages/design-system/storybook-static'
+      artifact: 'storybook-design-system'
+      publishLocation: 'pipeline'

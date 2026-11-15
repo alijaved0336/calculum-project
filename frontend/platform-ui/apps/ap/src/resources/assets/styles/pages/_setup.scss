@@ -1,0 +1,40 @@
+/*!
+ * Pages Setup
+ */
+.user-setup {
+	width: 100%;
+	&-footer{		
+		bottom: 100px;
+		display: flex;
+		justify-content: center;
+		flex-direction: column;
+	}
+}
+
+.table-list {
+	max-height: 350px;
+	margin-top: $margin*2;
+	margin-left: auto;
+	margin-right: auto;
+	.user_name {
+		margin-bottom: 0;
+	}
+	.user_email {
+		color: $body-color;
+		opacity: .5;
+	}
+}
+
+.add-user-form {
+	display: none;
+	&.active {
+		display: block;
+	}
+}
+
+.user-setup-form {
+	display: none;
+	&.active {
+		display: block;
+	}
+}

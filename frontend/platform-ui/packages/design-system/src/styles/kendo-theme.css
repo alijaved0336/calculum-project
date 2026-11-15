@@ -1,0 +1,6 @@
+/**
+ * Single Kendo theme entry — stock Bootstrap prebuilt CSS only.
+ * Brand colors: override sheets (e.g. kendo-inputs.scss) using CSS variables.
+ * Do not compile Kendo `all.scss` in Vite/Storybook.
+ */
+@import "@progress/kendo-theme-bootstrap/dist/all.css";

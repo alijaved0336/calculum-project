@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# System deps required by unstructured[pdf] (poppler, tesseract) and asyncpg (libpq)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    poppler-utils \
+    libmagic1 \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+COPY pyproject.toml uv.lock ./
+
+# Install all production deps (not the project itself) using a BuildKit secret for the
+# private Azure DevOps git dependency (calculum-tokenizer). The PAT is written to a
+# temp git config file and cleaned up in the same RUN layer so it is never baked in.
+RUN --mount=type=secret,id=git_pat,mode=0444 \
+    GIT_PAT=$(cat /run/secrets/git_pat) && \
+    printf '[url "https://pat:%s@dev.azure.com/"]\n\tinsteadOf = https://dev.azure.com/\n' "${GIT_PAT}" \
+        > /tmp/.azure-gitconfig && \
+    GIT_CONFIG_GLOBAL=/tmp/.azure-gitconfig \
+    uv sync --frozen --no-dev --no-install-project && \
+    rm -f /tmp/.azure-gitconfig
+
+ENV PATH="/app/.venv/bin:$PATH"

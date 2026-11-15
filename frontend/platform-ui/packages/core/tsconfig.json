@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "paths": {
+      "@ada/core": ["./src/index.ts"],
+      "@ada/core/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}

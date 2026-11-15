@@ -1,0 +1,38 @@
+/*!
+ * Utils Keyframes
+ */
+@keyframes blinker {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes filler {
+  0% {
+    fill: $color-white;
+  }
+  100% {
+    fill: $color-brand;
+  }
+}
+
+@keyframes stroker {
+  to {
+    stroke: $color-brand;
+    stroke-dashoffset: 0;
+  }
+  from {
+    stroke: $color-brand;
+    stroke-dashoffset: 500;
+  }
+}
+
+@keyframes dash {
+  to {
+    stroke: $color-brand;
+    stroke-dashoffset: 1000;
+  }
+}

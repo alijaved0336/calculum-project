@@ -1,0 +1,304 @@
+# Deploy Pipeline for Front-End AP (Account Payable)
+# Runs automatically on commits/merges to master, staging, or production branches
+# - master → DEV environment
+# - staging → PRE environment
+# - production → PRO environment
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    - staging
+    # production removed - PRO deploys are manual only
+
+pr: none
+
+name: ap.$(Build.SourceBranchName).$(Rev:r)
+
+pool:
+  name: Ubuntu-Aws
+
+variables:
+- group: Shared-Global-Vars
+- group: 'deploySecurityAWS - Azure'
+
+- ${{ if eq(variables['Build.SourceBranchName'], 'production') }}:
+  - group: Deployment-Pro
+- ${{ elseif eq(variables['Build.SourceBranchName'], 'staging') }}:
+  - group: Deployment-Pre
+- ${{ else }}:
+  - group: Deployment-Dev
+
+- name: ENVIRONMENT
+  ${{ if eq(variables['Build.SourceBranchName'], 'production') }}:
+    value: 'PRO'
+  ${{ elseif eq(variables['Build.SourceBranchName'], 'staging') }}:
+    value: 'PRE'
+  ${{ else }}:
+    value: 'DEV'
+
+stages:
+#==============================================================================
+# STAGE 1: Build and Test
+#==============================================================================
+- stage: Build_Test
+  displayName: 'Build and Test (AP)'
+  jobs:
+  - job: Build_Test_Job
+    displayName: 'Build and Test Job'
+    steps:
+    - checkout: self
+      fetchDepth: 0
+      displayName: 'Checkout repository (full history)'
+
+    # Step 1: Copy environment files from S3
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Step 1: Copy environment files from S3"
+        echo "========================================="
+        echo "Environment: $(ENVIRONMENT)"
+
+        aws s3 cp s3://s3sync-calculum/$(ENV_PATH)/front-end/ap/.env.local apps/ap/.env.local
+        echo "✓ .env.local copied from $(ENV_PATH)"
+
+        aws s3 cp s3://s3sync-calculum/$(ENV_PATH)/front-end/ap/kendo-ui-license.txt kendo-ui-license.txt
+        echo "✓ kendo-ui-license.txt copied to repo root from $(ENV_PATH)"
+
+        echo "========================================="
+      displayName: 'Copy files from S3'
+      retryCountOnTaskFailure: 1
+      failOnStderr: false
+
+    # Step 2: Install dependencies and build application
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Step 2: Build Application (AP)"
+        echo "========================================="
+        echo "Node version: $(node -v)"
+        echo "pnpm version: $(pnpm -v 2>/dev/null || echo 'not installed')"
+
+        echo "Installing pnpm..."
+        export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+        npm install -g pnpm@9 --quiet
+        echo "##vso[task.prependpath]$HOME/.npm-global/bin"
+        export PATH="$HOME/.npm-global/bin:$PATH"
+        echo "✓ pnpm installed: $(pnpm -v)"
+
+        echo "Cleaning workspace..."
+        pnpm store prune --force 2>/dev/null || true
+        rm -rf node_modules apps/ap/node_modules packages/*/node_modules
+
+        PKG_VERSION=$(node -p "require('./apps/ap/package.json').version")
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        RELEASE_VERSION="${PKG_VERSION}+${SHORT_SHA}"
+        echo "Release: ${RELEASE_VERSION}"
+        echo "##vso[task.setvariable variable=RELEASE_VERSION;isOutput=true]${RELEASE_VERSION}"
+
+        echo "Running pnpm install..."
+        pnpm install --frozen-lockfile
+        echo "✓ pnpm install completed"
+
+        echo "Running turbo build for AP..."
+        export SENTRY_AUTH_TOKEN=$(SENTRY_TOKEN)
+        # Node's default old-space cap (~4 GB on this agent) is no longer enough for AP's
+        # rollup render pass, so the build died with "Reached heap limit Allocation failed".
+        # Measured on the failing commit: 4096 MB OOMs, 5120 MB completes, so the peak sits
+        # between the two; 6144 MB leaves headroom without demanding 8 GB from the agent.
+        # The underlying cost is structural — see the comment in apps/ap/vite.config.ts.
+        export NODE_OPTIONS=--max-old-space-size=6144
+        npx turbo run build --filter=@ada/ap
+        echo "✓ Build completed"
+
+        echo "========================================="
+      name: BuildStep
+      displayName: 'Install and Build'
+      retryCountOnTaskFailure: 1
+      failOnStderr: false
+
+    # Step 3: Execute tests with coverage
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Step 3: Execute Tests (AP)"
+        echo "========================================="
+
+        npx turbo run test --filter=@ada/ap -- --coverage
+        echo "✓ Tests completed"
+
+        echo "========================================="
+      workingDirectory: '$(Build.SourcesDirectory)'
+      displayName: 'Execute Tests'
+      failOnStderr: false
+      continueOnError: true
+
+    # Step 4: Publish test results
+    - task: PublishTestResults@2
+      displayName: 'Publish Test Results'
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: 'apps/ap/test-results/junit.xml'
+        failTaskOnFailedTests: false
+
+    # Step 5: Publish code coverage results
+    - task: PublishCodeCoverageResults@2
+      displayName: 'Publish Code Coverage Results'
+      condition: succeededOrFailed()
+      inputs:
+        summaryFileLocation: '$(System.DefaultWorkingDirectory)/apps/ap/test-results/coverage/cobertura-coverage.xml'
+        pathToSources: '$(System.DefaultWorkingDirectory)/apps/ap/src'
+
+    # Step 6: Publish build artifacts
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Build Artifacts'
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/apps/ap/dist'
+        artifact: 'dist-ap'
+        publishLocation: 'pipeline'
+
+#==============================================================================
+# STAGE 2: SonarQube Code Analysis
+#==============================================================================
+- stage: Sonar
+  displayName: 'SonarQube Code Analysis (AP)'
+  dependsOn: Build_Test
+  condition: and(succeeded(), eq(lower(variables['SONAR_EXECUTE']), 'true'))
+  jobs:
+  - job: Code_Analysis
+    displayName: 'Run SonarQube Analysis'
+    pool:
+      name: Ubuntu-Aws
+      demands: java
+    steps:
+    - script: |
+        set -e
+        export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+        npm install -g pnpm@9 --quiet
+        echo "##vso[task.prependpath]$HOME/.npm-global/bin"
+        export PATH="$HOME/.npm-global/bin:$PATH"
+        aws s3 cp s3://s3sync-calculum/$(ENV_PATH)/front-end/ap/.env.local apps/ap/.env.local
+        echo "✓ .env.local copied"
+      displayName: 'Copy .env.local from S3'
+      retryCountOnTaskFailure: 1
+      failOnStderr: false
+
+    - task: SonarQubePrepare@7
+      displayName: 'Prepare analysis on SonarQube Server'
+      inputs:
+        SonarQube: SonarQube
+        scannerMode: cli
+        configMode: file
+        configFile: 'apps/ap/sonar-project.properties'
+        extraProperties: |
+          sonar.projectBaseDir=$(Build.SourcesDirectory)/apps/ap
+
+    - script: |
+        set -e
+        pnpm install --frozen-lockfile
+        echo "✓ pnpm install completed"
+      displayName: 'Install Dependencies'
+      retryCountOnTaskFailure: 1
+
+    - script: |
+        set -e
+        npx turbo run test --filter=@ada/ap -- --coverage
+        echo "✓ Tests completed"
+      displayName: 'Execute Tests with Coverage'
+      continueOnError: true
+
+    - script: |
+        set -e
+        LCOV="apps/ap/test-results/coverage/lcov.info"
+        if [ ! -s "$LCOV" ]; then
+          echo "##vso[task.logissue type=error]lcov.info is missing or empty at $LCOV"
+          exit 1
+        fi
+        BEFORE=$(grep -c '^SF:.*\.vue?' "$LCOV" || true)
+        if [ "$BEFORE" -gt 0 ]; then
+          sed -i -E 's|^(SF:.*\.vue)\?[^[:space:]]*|\1|' "$LCOV"
+        fi
+      displayName: 'Validate & Normalize Coverage Report'
+
+    - task: SonarQubeAnalyze@7
+      displayName: 'Run Code Analysis'
+
+    - task: SonarQubePublish@7
+      displayName: 'Publish Quality Gate Result'
+      inputs:
+        checkQualityGate: true
+
+    - script: |
+        echo "Cleaning build directory: $(Build.SourcesDirectory)"
+        sudo rm -rf "$(Build.SourcesDirectory)"/*
+      workingDirectory: /home/ubuntu
+      displayName: 'Clean Directory'
+      condition: always()
+      continueOnError: true
+
+#==============================================================================
+# STAGE 3: Deploy to S3
+#==============================================================================
+- stage: Deploy
+  displayName: 'Deploy AP to S3'
+  dependsOn: Build_Test
+  variables:
+    RELEASE_VERSION: $[ stageDependencies.Build_Test.Build_Test_Job.outputs['BuildStep.RELEASE_VERSION'] ]
+  jobs:
+  - deployment: Deploy_To_S3
+    displayName: 'Deploy AP to S3'
+    ${{ if eq(variables['Build.SourceBranchName'], 'production') }}:
+      environment: Prod
+    ${{ elseif eq(variables['Build.SourceBranchName'], 'staging') }}:
+      environment: Pre
+    ${{ else }}:
+      environment: Dev
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: none
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Build Artifacts'
+            inputs:
+              artifact: 'dist-ap'
+              path: '$(Pipeline.Workspace)/dist-ap'
+
+          - script: |
+              set -e
+              echo "Environment: $(ENVIRONMENT)"
+              echo "Target bucket: s3://$(AWS_S3_BUCKET_APP)"
+              aws s3 rm --recursive s3://$(AWS_S3_BUCKET_APP)
+              aws s3 sync $(Pipeline.Workspace)/dist-ap s3://$(AWS_S3_BUCKET_APP)/dist
+              echo "✓ Files uploaded to S3"
+            displayName: 'Copy Files to S3'
+            retryCountOnTaskFailure: 1
+            failOnStderr: false
+
+          - script: |
+              set -e
+              aws cloudfront create-invalidation --distribution-id $(AWS_CLOUDFRONT_ID) --paths '/*'
+              echo "✓ CloudFront invalidation created"
+            displayName: 'Invalidate CloudFront'
+            retryCountOnTaskFailure: 1
+            failOnStderr: false
+
+          - script: |
+              set -e
+              if [ -z "${RELEASE_VERSION}" ]; then
+                echo "##vso[task.logissue type=error]RELEASE_VERSION is empty"
+                exit 1
+              fi
+              if ! command -v sentry-cli &> /dev/null; then
+                curl -sL https://sentry.io/get-cli/ | bash
+              fi
+              export SENTRY_ORG=calculum
+              export SENTRY_PROJECT=ada-vue
+              sentry-cli releases deploys "${RELEASE_VERSION}" new -e "$(ENVIRONMENT)"
+              echo "✓ Deploy marker recorded"
+            displayName: 'Sentry Deploy Marker'
+            condition: succeeded()
+            continueOnError: true
+            env:
+              SENTRY_AUTH_TOKEN: $(SENTRY_TOKEN)

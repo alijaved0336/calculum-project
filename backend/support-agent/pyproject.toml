@@ -1,0 +1,44 @@
+[project]
+name = "backend-support-agent"
+version = "0.1.0"
+description = "Video RAG support agent — single-collection retrieval over video transcripts + support documents, grounded answers, same-file deep-linked clips, email escalation."
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.111",
+    # [standard] pulls in `websockets`. Without it uvicorn has no WebSocket
+    # implementation, refuses the upgrade and answers 404 — which breaks the
+    # /support/chat socket even though the route is registered.
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2",
+    "pydantic-settings>=2",
+    "httpx>=0.27",
+    "qdrant-client>=1.9",
+    "python-multipart>=0.0.9",
+    "pyjwt>=2.8",
+    "cryptography>=42.0",
+    "greenlet>=3.0",
+    "aiosmtplib>=3.0",
+    "asyncpg>=0.29",
+    "alembic>=1.13",
+    "google-cloud-storage>=3.12.1",
+    "sentence-transformers>=5.6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "testcontainers>=4.0",
+    "psycopg2-binary>=2.9",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["."]
+testpaths = ["tests"]
+markers = [
+    "integration: marks tests that require external services (in-memory Qdrant / local Postgres)",
+]

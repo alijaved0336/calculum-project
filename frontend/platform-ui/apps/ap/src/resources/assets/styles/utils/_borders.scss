@@ -1,0 +1,511 @@
+// We use !important here to override the default Bootstrap styles.
+// Taken from tailwindcss v3.3.2
+
+// ? - Move to btns utils
+.custom-padding-btn {
+  padding: 0.625rem 1rem !important;
+  width: -moz-fit-content !important;
+  width: fit-content !important;
+}
+
+/*** Border Radius ***/
+.rounded {
+  
+  &-lg-float {
+    border-radius: 0rem 0.5rem 0.5rem 0rem !important; /* 8px */
+  }
+  
+  &-lg {
+    border-radius: 0.5rem !important; /* 8px */
+  }
+  &-xl {
+    border-radius: 22px !important;
+  }
+  &-2xl {
+    border-radius: 1rem !important; /* 16px */
+  }
+  &-3xl {
+    border-radius: 1.5rem !important; /* 24px */
+  }
+  &-full {
+    border-radius: 9999px !important;
+  }
+
+  /*** Border Radius Corners ***/
+
+  // Top
+
+  &-t-none {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  &-t-xl {
+    border-top-left-radius: 0.75rem; /* 12px */
+    border-top-right-radius: 0.75rem; /* 12px */
+  }
+
+  // Top Left
+
+  &-tl-none {
+    border-top-left-radius: 0;
+  }
+
+  &-tl-xl {
+    border-top-left-radius: 0.75rem;
+  }
+
+  // Top Right
+
+  &-tr-none {
+    border-top-right-radius: 0;
+  }
+
+  &-tr-xl {
+    border-top-right-radius: 0.75rem;
+  }
+
+  // Bottom
+
+  &-b-none {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  &-b-xl {
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+  }
+
+  // Bottom Right
+
+  &-br-none {
+    border-bottom-right-radius: 0;
+  }
+
+  &-br-xl {
+    border-bottom-right-radius: 0.75rem;
+  }
+
+  // Bottom Left
+
+  &-bl-none {
+    border-bottom-left-radius: 0;
+  }
+
+  &-bl-xl {
+    border-bottom-left-radius: 0.75rem;
+  }
+
+  // Top Bottom
+
+  &-tbr-none {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
+  &-tbl-none {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+  }
+
+  /*** END Border Radius Corners ***/
+}
+/*** END Border Radius ***/
+
+/*** Border Style ***/
+.border {
+  &-solid {
+    border-style: solid !important;
+  }
+  &-dashed {
+    border-style: dashed !important;
+  }
+  &-dotted {
+    border-style: dotted !important;
+  }
+  &-double {
+    border-style: double !important;
+  }
+  &-hidden {
+    border-style: hidden !important;
+  }
+  &-none {
+    border-style: none !important;
+  }
+}
+/*** END Border Style ***/
+
+/*** Border Width ***/
+.border {
+  &-0 {
+    border-width: 0px !important;
+  }
+  &-2 {
+    border-width: 2px !important;
+  }
+  &-4 {
+    border-width: 4px !important;
+  }
+  &-8 {
+    border-width: 8px !important;
+  }
+  & {
+    border-width: 1px !important;
+  }
+}
+
+.border-x {
+  &-0 {
+    border-left-width: 0px;
+    border-right-width: 0px;
+  }
+  &-2 {
+    border-left-width: 2px;
+    border-right-width: 2px;
+  }
+  &-4 {
+    border-left-width: 4px;
+    border-right-width: 4px;
+  }
+  &-8 {
+    border-left-width: 8px;
+    border-right-width: 8px;
+  }
+  & {
+    border-left-width: 1px;
+    border-right-width: 1px;
+  }
+}
+
+.border-y {
+  &-0 {
+    border-top-width: 0px;
+    border-bottom-width: 0px;
+  }
+  &-2 {
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+  }
+  &-4 {
+    border-top-width: 4px;
+    border-bottom-width: 4px;
+  }
+  &-8 {
+    border-top-width: 8px;
+    border-bottom-width: 8px;
+  }
+  & {
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+  }
+}
+
+.border-t {
+  &-0 {
+    border-top-width: 0px;
+  }
+  &-2 {
+    border-top-width: 2px;
+  }
+  &-4 {
+    border-top-width: 4px;
+  }
+  &-8 {
+    border-top-width: 8px;
+  }
+  & {
+    border-top-width: 1px;
+  }
+}
+
+.border-r {
+  &-0 {
+    border-right-width: 0px;
+  }
+  &-2 {
+    border-right-width: 2px;
+  }
+  &-4 {
+    border-right-width: 4px;
+  }
+  &-8 {
+    border-right-width: 8px;
+  }
+  & {
+    border-right-width: 1px;
+  }
+}
+
+.border-b {
+  &-0 {
+    border-bottom-width: 0px !important;
+  }
+  &-2 {
+    border-bottom-width: 2px !important;
+  }
+  &-4 {
+    border-bottom-width: 4px !important;
+  }
+  &-8 {
+    border-bottom-width: 8px !important;
+  }
+  & {
+    border-bottom-width: 1px !important;
+  }
+}
+
+.border-l {
+  &-0 {
+    border-left-width: 0px;
+  }
+  &-2 {
+    border-left-width: 2px;
+  }
+  &-4 {
+    border-left-width: 4px;
+  }
+  &-8 {
+    border-left-width: 8px;
+  }
+  & {
+    border-left-width: 1px;
+  }
+}
+// *** END Border Width ***
+
+// *** Border Color ***
+
+// This generates all the border colors based on $colors 
+// e.g.: .border-green-500
+@each $variant, $shades in $colors {
+  @each $i, $color in $shades {
+    .border-#{$variant}-#{$i} {
+      border-color: map-get($shades, $i) !important;
+    }
+  }
+}
+
+// *** DEPRECATED - Do not edit below this line ***
+
+// Error
+.border-error {
+  &-25 {
+    border-color: $color-error-25 !important;
+  }
+  &-50 {
+    border-color: $color-error-50 !important;
+  }
+  &-100 {
+    border-color: $color-error-100 !important;
+  }
+  &-200 {
+    border-color: $color-error-200 !important;
+  }
+  &-300 {
+    border-color: $color-error-300 !important;
+  }
+  &-400 {
+    border-color: $color-error-400 !important;
+  }
+  &-500 {
+    border-color: $color-error-500 !important;
+  }
+  &-600 {
+    border-color: $color-error-600 !important;
+  }
+  &-700 {
+    border-color: $color-error-700 !important;
+  }
+  &-800 {
+    border-color: $color-error-800 !important;
+  }
+  &-900 {
+    border-color: $color-error-900 !important;
+  }
+}
+
+// Cool Gray
+.border-coolgray {
+  &-25 {
+    border-color: $color-coolgray-25;
+  }
+  &-50 {
+    border-color: $color-coolgray-50;
+  }
+  &-100 {
+    border-color: $color-coolgray-100;
+  }
+  &-200 {
+    border-color: $color-coolgray-200;
+  }
+  &-300 {
+    border-color: $color-coolgray-300;
+  }
+  &-400 {
+    border-color: $color-coolgray-400;
+  }
+  &-500 {
+    border-color: $color-coolgray-500;
+  }
+  &-600 {
+    border-color: $color-coolgray-600;
+  }
+  &-700 {
+    border-color: $color-coolgray-700;
+  }
+  &-800 {
+    border-color: $color-coolgray-800;
+  }
+  &-900 {
+    border-color: $color-coolgray-900;
+  }
+}
+
+// Gray
+.border-gray {
+  &-25 {
+    border-color: $color-gray-25 !important;
+  }
+  &-50 {
+    border-color: $color-gray-50 !important;
+  }
+  &-100 {
+    border-color: $color-gray-100 !important;
+  }
+  &-200 {
+    border-color: $color-gray-200 !important;
+  }
+  &-300 {
+    border-color: $color-gray-300 !important;
+  }
+  &-400 {
+    border-color: $color-gray-400 !important;
+  }
+  &-500 {
+    border-color: $color-gray-500 !important;
+  }
+  &-600 {
+    border-color: $color-gray-600 !important;
+  }
+  &-700 {
+    border-color: $color-gray-700 !important;
+  }
+  &-800 {
+    border-color: $color-gray-800 !important;
+  }
+  &-900 {
+    border-color: $color-gray-900 !important;
+  }
+}
+
+// Green
+.border-green {
+  &-25 {
+    border-color: $color-green-25;
+  }
+  &-50 {
+    border-color: $color-green-50;
+  }
+  &-100 {
+    border-color: $color-green-100;
+  }
+  &-200 {
+    border-color: $color-green-200;
+  }
+  &-300 {
+    border-color: $color-green-300;
+  }
+  &-400 {
+    border-color: $color-green-400;
+  }
+  &-500 {
+    border-color: $color-green-500;
+  }
+  &-600 {
+    border-color: $color-green-600;
+  }
+  &-700 {
+    border-color: $color-green-700;
+  }
+  &-800 {
+    border-color: $color-green-800;
+  }
+  &-900 {
+    border-color: $color-green-900;
+  }
+}
+
+// Rose
+.border-rose {
+  &-25 {
+    border-color: $color-rose-25;
+  }
+  &-50 {
+    border-color: $color-rose-50;
+  }
+  &-100 {
+    border-color: $color-rose-100;
+  }
+  &-200 {
+    border-color: $color-rose-200;
+  }
+  &-300 {
+    border-color: $color-rose-300;
+  }
+  &-400 {
+    border-color: $color-rose-400;
+  }
+  &-500 {
+    border-color: $color-rose-500;
+  }
+  &-600 {
+    border-color: $color-rose-600;
+  }
+  &-700 {
+    border-color: $color-rose-700;
+  }
+  &-800 {
+    border-color: $color-rose-800;
+  }
+  &-900 {
+    border-color: $color-rose-900;
+  }
+}
+
+// Primary
+.border-primary {
+  &-25 {
+    border-color: $color-primary-25 !important;
+  }
+  &-50 {
+    border-color: $color-primary-50 !important;
+  }
+  &-100 {
+    border-color: $color-primary-100 !important;
+  }
+  &-200 {
+    border-color: $color-primary-200 !important;
+  }
+  &-300 {
+    border-color: $color-primary-300 !important;
+  }
+  &-400 {
+    border-color: $color-primary-400 !important;
+  }
+  &-500 {
+    border-color: $color-primary-500 !important;
+  }
+  &-600 {
+    border-color: $color-primary-600 !important;
+  }
+  &-700 {
+    border-color: $color-primary-700 !important;
+  }
+  &-800 {
+    border-color: $color-primary-800 !important;
+  }
+  &-900 {
+    border-color: $color-primary-900 !important;
+  }
+}
+// *** END DEPRECATED ***

@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "preserve",
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "ignoreDeprecations": "5.0",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
+    "resolveJsonModule": true,
+    "paths": {
+      "@ada/auth":           ["../../packages/auth/src/index.ts"],
+      "@ada/auth/*":         ["../../packages/auth/src/*"],
+      "@ada/core":           ["../../packages/core/src/index.ts"],
+      "@ada/core/*":         ["../../packages/core/src/*"],
+      "@ada/design-system":  ["../../packages/design-system/src/index.ts"],
+      "@ada/design-system/*":["../../packages/design-system/src/*"]
+    }
+  }
+}

@@ -1,0 +1,76 @@
+// Framework layer.
+@import "@ada/design-system/styles/bootstrap/bootstrap";
+
+// Shared base: box-sizing, and the body font, colour and page background taken from the tokens.
+@import "@ada/design-system/styles/base";
+
+// Platform look: the app shell and the sidebar icon set.
+@import "@ada/design-system/styles/general/layout";
+@import "@ada/design-system/styles/general/sidebaricons";
+
+// Typography.
+@import "@ada/design-system/styles/general/typography";
+@import "@ada/design-system/styles/fonts/inter";
+@import "./zoom";
+// Font Awesome 7.3
+@import "@ada/design-system/styles/fonts/fontawesome";
+
+// Colour variables for the SCSS that still uses them (the CSS custom properties are the tokens).
+@import "@ada/design-system/styles/variables/colors";
+
+// Floating-panel chrome shared by DropdownPanel/CustomSelect/menus (border, shadow, padding,
+// list-style reset). Without it the panel falls back to bare browser <ul> styling (bullet,
+// no padding/shadow) - every host that uses one of those primitives must import this once.
+@import "@ada/design-system/styles/dropdown-surface.scss";
+
+// AB#20327 follow-up: CustomDialog's own override sheet (title-bar chrome, close-button overlay
+// position, the confirm-card `--logo` variant's centering/stacked actions). AR never imported
+// this - DisclaimerAcknowledgementModal.vue rendered with none of it, just Kendo's bare stock
+// dialog markup underneath our own inline utility classes. Every host that uses CustomDialog
+// must import this once (see packages/design-system/AGENTS.md's own host-import list).
+@import "@ada/design-system/styles/kendo-dialog.scss";
+
+// AB#20327 follow-up: the design-system's own Kendo Inputs overrides (checked-state accent
+// color, focus ring) for CheckBox/RadioButton/ToggleSwitch/etc. AR never imported this either -
+// its CheckBox rendered with bare Kendo styling instead of the design-system look defined in
+// Storybook. Every host that uses a `@ada/design-system` Kendo-input wrapper must import this once.
+@import "@ada/design-system/styles/kendo-inputs.scss";
+
+// The Kendo grid's own precompiled CSS, not a Sass-compiled theme (see the file's own header):
+// real Bootstrap 5.3 is loaded above, and compiling kendo-theme-bootstrap's Sass partials in the
+// same pass breaks on Bootstrap 5.3's `var(--bs-*)` strings inside Kendo's Sass arithmetic. This
+// replaces the hand-generated `kendo-ui/calculum-theme` (G-28/G-29), which themed
+// `@progress/kendo-vue-grid`'s `Grid` directly and would double-theme the same `.k-grid` markup
+// GraphqlGrid renders if both were imported.
+//
+// On this branch `kendo-grid.scss` is overrides-only (does not re-import `all.css`). Theme chrome
+// for AR still comes from `./kendo-ui/calculum-theme` below — do not also import
+// `@ada/design-system/styles/kendo-theme.css` here or you load the stock theme twice.
+@import "@ada/design-system/styles/kendo-grid.scss";
+
+@import "./cards";
+
+@import "./kendo-ui/calculum-theme";
+
+// DS brand overrides for the Kendo inputs its primitives wrap (ToggleSwitch, CheckBox, RadioButton,
+// TextInput, TextArea, RangeSlider) and their shared disabled look. Storybook loads both after the
+// theme; without them AR paints the switch with calculum-theme's raw $primary track and
+// $selected-bg (black) thumb instead of the DS design. Must come after calculum-theme to win.
+@import "@ada/design-system/styles/disabled-state.scss";
+@import "@ada/design-system/styles/kendo-inputs.scss";
+
+// TooltipButton's popup sheet (`.tooltip-button__popup`: max-width + wrapping, DS colours/padding).
+// AR never imported it, so every tooltip - TooltipButton's own and the Customer Card's
+// rating-description Tooltip that reuses its class - rendered as one unbounded line that ran off
+// screen. After calculum-theme so it wins over the theme's own `.k-tooltip` rules.
+@import "@ada/design-system/styles/kendo-tooltip.scss";
+
+// Utilities, so they override component rules the way utility classes are expected to.
+@import "@ada/design-system/styles/utilities/bs5-utilities";
+@import "@ada/design-system/styles/utilities/cursor";
+
+// Bootstrap's reboot underlines every <a> by default - AR doesn't want that
+// native underline anywhere, so reset it globally after bootstrap loads.
+a {
+  text-decoration: none;
+}

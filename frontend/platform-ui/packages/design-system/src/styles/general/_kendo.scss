@@ -1,0 +1,94 @@
+@import "../variables/colors";
+
+// HorizontalBarChart.vue, VerticalBarChart.vue, WaterfallChart.vue, RangeBarChart.vue
+// and HomeAnalyzeWaterfall.vue render their own cursor-tracked value tooltip because
+// Kendo's internal chart-tooltip anchor calculation is corrupted under the app-wide
+// zoom:0.67 and cannot be corrected via a zoom compensation factor on this wrapper —
+// verified empirically that neither zoom:1 nor the standard $zoom-compensation land the
+// popup near the hovered bar (the underlying anchor coordinate itself is wrong, not just
+// the CSS scale). Kendo's own popup is hidden here; see the matching component for the
+// replacement tooltip and its positioning logic. Other Kendo chart components
+// (HorizontalBarChartNew, BarLineChart, etc.) likely share the same bug but haven't been
+// patched yet — add their own marker class here if/when they are.
+.k-chart-tooltip-wrapper:has(.horizontal-bar-chart-tooltip-marker),
+.k-chart-tooltip-wrapper:has(.vertical-bar-chart-tooltip-marker),
+.k-chart-tooltip-wrapper:has(.waterfall-chart-tooltip-marker),
+.k-chart-tooltip-wrapper:has(.range-bar-chart-tooltip-marker),
+.k-chart-tooltip-wrapper:has(.home-analyze-waterfall-tooltip-marker) {
+  display: none !important;
+}
+
+// Shared visual style for the custom tooltip/highlight-dot/all-points overlay used by
+// line/area Kendo charts that remove <ChartTooltip> entirely in favor of their own
+// zoom-safe hit-testing (see InterestRatesCard.vue, ExchangeRatesCard.vue and
+// AggregateImpactIndexChart.vue for the JS half of this pattern). Each component still
+// owns its own chart-wrapper class (e.g. .chart-container, .aiic-chart-wrapper) with
+// `position: relative` plus mousemove/mouseleave handlers, since the wrapper itself
+// isn't shared — only this visual styling is.
+.chart-tooltip {
+  position: absolute;
+  padding: 6px 8px;
+  font-size: 0.75rem;
+  background: #fff;
+  border: 1px solid $color-gray-200;
+  border-radius: 6px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+
+  .chart-tooltip-category {
+    font-weight: 600;
+    color: $color-gray-700;
+    margin-bottom: 4px;
+  }
+
+  .chart-tooltip-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .chart-tooltip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .chart-tooltip-label {
+    color: $color-gray-500;
+  }
+
+  .chart-tooltip-value {
+    font-weight: 600;
+    color: $color-gray-800;
+  }
+}
+
+// Color is always set per-instance via JS (style.background), never defaulted here,
+// since it must match whichever series/point is currently active.
+.chart-marker-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 99;
+}
+
+.chart-point-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid $color-gray-400;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 98;
+}

@@ -1,0 +1,81 @@
+// Variables
+@import "variables/colors";
+@import "variables/dimensions";
+@import "variables/globals";
+@import "variables/typography";
+@import "variables/icons";
+@import "variables/mixins";
+@import 'variables/hover';
+
+
+// Base
+@import "base/fonts";
+@import "base/zoom";
+@import "@ada/design-system/styles/general/layout";
+@import "@ada/design-system/styles/general/sidebaricons";
+@import "@ada/design-system/styles/general/kendo";
+
+
+// Utils
+@import "utils/keyframes";
+@import "utils/bootstrap-overrides";
+@import "@ada/design-system/styles/general/typography";
+@import "utils/borders";
+@import "utils/svg";
+@import "utils/background";
+@import "utils/margin";
+@import "utils/padding";
+@import "utils/height";
+@import "utils/width";
+@import "utils/flexbox-grid";
+@import "@ada/design-system/styles/utilities/cursor";
+@import "utils/transitions";
+@import "utils/effects";
+@import "utils/layout";
+@import "utils/fontweight";
+@import "utils/rotate";
+
+
+
+// Components
+@import "components/header";
+@import "components/footer";
+@import "components/button";
+@import "components/link";
+@import "components/menu";
+@import "components/forms";
+@import "components/card";
+@import "components/charts";
+@import "components/sidebar";
+@import "components/blocks";
+@import "components/switch";
+@import "components/table";
+@import "components/images";
+@import "components/spendcubes";
+@import "components/tour";
+@import "components/carousel";
+@import "components/notes";
+@import "components/managemodule";
+@import "components/table_9box";
+@import "components/admingrid";
+
+// Layout
+@import "layout/page";
+@import "layout/main";
+@import "layout/general";
+
+// Pages
+@import "pages/login";
+@import "pages/setup";
+@import "pages/upload";
+@import "pages/compare";
+@import "pages/program";
+@import "pages/account";
+@import "pages/entity";
+
+// Front
+@import "utils/front_overrides";
+
+// kendo-ui
+@import "kendo-ui/Calculum-theme.scss";
+@import "@ada/design-system/styles/kendo-tooltip.scss";

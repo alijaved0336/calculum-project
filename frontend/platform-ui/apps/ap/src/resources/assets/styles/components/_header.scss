@@ -1,0 +1,29 @@
+/*!
+ * Components Header
+ */
+.header {
+	.img-logo {
+		margin-top: $margin__bootstrap*2;
+		margin-left: $margin__bootstrap*2;
+	}	
+	&__login{
+		.img-logo {
+			margin-left: 0;
+		}
+	}
+	&__app {
+		position: fixed;
+		background: $body-bg;
+		width: calc(100% - 250px);
+		z-index: 99;
+		padding: $margin__bootstrap;
+
+		.row {
+			@include isFlex(center);
+			p {
+				margin: 0;
+			}
+		}
+	}
+}
+

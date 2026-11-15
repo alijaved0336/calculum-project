@@ -1,0 +1,68 @@
+.submit-button {
+  text-align: center;
+  display: flex;
+  padding: 8px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  border: 1px solid $color-gray-300;
+  background: $color-primary-300;
+  box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  color: white;
+}
+
+.activate-send {
+    color: white;
+    border: 1px solid $color-primary-500;
+    background: $color-primary-500;
+    cursor: pointer;
+  }
+
+  .circle-name {
+    align-items: end;
+    width: 28px;
+    margin-right: 1rem;
+   }
+
+   .created-by {
+    color: #000;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 16.9px; /* 140.833% */
+  }
+
+  .current-user {
+    justify-content: end;
+    color: $color-gray-500;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 18px; /* 150% */
+  }
+
+
+  .note-date {
+    justify-content: center;
+    color: $color-gray-400;
+    text-align: center;  
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 18px;
+  
+    &-user {
+      color: $color-gray-500;
+    }
+  }
+  
+  .notes-textarea {
+    max-height: 60px;
+    resize: none;
+  }
+
+  .hr-unread-notes {
+    border: 1px solid red;
+    width: 90%;
+  }

@@ -1,0 +1,19 @@
+// We use !important here to override the default styles.
+// Taken from tailwindcss v3.4.13
+
+// *** Rotate ***
+
+// Utilities for rotating elements with transform.
+// Basic usage
+// Use the rotate-* utilities to rotate an element.
+// e.g. rotate-45
+
+$rotate-values: 0, 1, 2, 3, 6, 12, 45, 90, 180, 270, 360;
+
+.rotate {
+    @each $i in $rotate-values {
+        &-#{$i} {
+            transform: rotate(#{$i}deg) !important;
+        }
+    }
+}

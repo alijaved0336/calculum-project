@@ -1,0 +1,52 @@
+export const nodesEdges = `
+  entityType
+  entityUuid  
+  entityMediaPath
+  parentUuid
+  parentLogoPath
+  entityCreditScore
+  entityFlagUrl
+  buyerFlagUrl
+  spendAlias
+  uuid
+  harmonizations
+  harmColors
+  hasDynamic
+  harmonizationLevels
+  financings
+  financingColors
+  selected
+  negotiationStatusCodes
+  smeSource
+  vCardGroupName
+  isVCardApplied
+  vCardColor
+  isPilot
+  scaleUsingFinancing\n
+`;
+
+export const viewNodesEdges = `
+  entityType
+  entityUuid  
+  entityMediaPath
+  parentUuid
+  parentLogoPath
+  entityCreditScore
+  entityFlagUrl
+  buyerFlagUrl
+  spendAlias
+  uuid
+  harmonizations
+  harmColors
+  hasDynamic
+  harmonizationLevels
+  financings
+  financingColors  
+  negotiationStatusCodes
+  smeSource
+  vCardGroupName
+  isVCardApplied
+  vCardColor
+  isPilot
+  scaleUsingFinancing\n
+`;

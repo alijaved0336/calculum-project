@@ -1,0 +1,27 @@
+// We use !important here to override the default Bootstrap styles.
+// Taken from tailwindcss v3.3.3
+
+// *** Overflow ***
+
+// Utilities for modifying the overflow of an element.
+// e.g. overflow-hidden
+
+$overflow-values: (auto, hidden, clip, visible, scroll);
+
+$overflow-directions: (x, y);
+
+.overflow {
+  @each $value in $overflow-values {
+    &-#{$value} {
+      overflow: $value !important;
+    }
+  }
+
+  @each $direction in $overflow-directions {
+    @each $value in $overflow-values {
+      &-#{$direction}-#{$value} {
+        overflow-#{$direction}: $value !important;
+      }
+    }
+  }
+}

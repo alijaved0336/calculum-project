@@ -1,0 +1,19 @@
+@use "sass:math";
+
+// We use !important here to override the default Bootstrap styles.
+// Taken from tailwindcss v3.3.2
+
+// *** Opacity ***
+
+// Utilities for modifying the opacity of an element.
+// e.g. opacity-50
+
+$opacity-values: 0, 5, 10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 95, 100;
+
+.opacity {
+  @each $i in $opacity-values {
+    &-#{$i} {
+      opacity: math.div($i, 100) !important;
+    }
+  }
+}

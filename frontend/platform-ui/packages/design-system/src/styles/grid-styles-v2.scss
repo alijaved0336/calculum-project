@@ -1,0 +1,129 @@
+/**
+ * GraphQL Grid overrides (V2 / rebranding) — not a second Kendo theme load.
+ *
+ * For the rebranding host only. Not imported by the design-system default entry
+ * (`kendo-grid.scss` → V1), Storybook, or AR. Import via
+ * `@ada/design-system/styles/grid-styles-v2.scss`.
+ *
+ * Hosts must already load the theme once (`kendo-theme.css` in Storybook,
+ * Calculum-theme in `@ada/ap` / AR). Re-importing `all.css` here would wipe brand
+ * overrides that load earlier (e.g. `kendo-inputs.scss` switch sizes).
+ *
+ * Prefer higher-specificity selectors under `.graphql-grid` for token tweaks
+ * rather than restating theme-owned row/hover backgrounds.
+ */
+
+// Calculum-theme + kendo-theme-bootstrap paint physical `border-left` on `td`/`th`
+// and set `.k-grid .k-table-td { border-block-end-width: 0 }` (zebra). Logical-only
+// overrides lose in AP. Flatten GraphqlGrid: one surface, no vertical column rules,
+// horizontal lines only. Scope stays under `.graphql-grid` — not CalculumGridGraphql.
+.graphql-grid .k-grid .k-table-th,
+.graphql-grid .k-grid .k-table-th.k-first,
+.graphql-grid .k-grid .k-table-td,
+.graphql-grid .k-grid th,
+.graphql-grid .k-grid td,
+.graphql-grid .k-grid .k-header {
+  border-left-width: 0;
+  border-right-width: 0;
+  border-inline-start-width: 0;
+  border-inline-end-width: 0;
+  border-bottom: 1px solid var(--border-color-default);
+  border-block-end: 1px solid var(--border-color-default);
+}
+
+// AP `_general.scss` boxes header/container/footer/sticky with `!important`
+// (`#dee2e6`). That 1px frame reads as vertical column lines. Beat it here only.
+.graphql-grid .k-grid .k-grid-container {
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+  border-inline-start-width: 0 !important;
+  border-inline-end-width: 0 !important;
+}
+
+.graphql-grid .k-grid div.k-grid-header,
+.graphql-grid .k-grid div.k-grid-footer {
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-top: 0 !important;
+  border-inline-start-width: 0 !important;
+  border-inline-end-width: 0 !important;
+  border-block-start-width: 0 !important;
+  border-bottom: 1px solid var(--border-color-default) !important;
+  border-block-end: 1px solid var(--border-color-default) !important;
+}
+
+.graphql-grid .k-grid-header .k-grid-header-sticky,
+.graphql-grid .k-grid .k-master-row .k-grid-content-sticky {
+  border-left-width: 0 !important;
+  border-right-width: 0 !important;
+  border-inline-start-width: 0 !important;
+  border-inline-end-width: 0 !important;
+  border-bottom-color: var(--border-color-default) !important;
+  border-block-end-color: var(--border-color-default) !important;
+}
+
+// Live class is `.k-table-alt-row` (`.k-alt` is unused on body rows; keep both).
+// Exclude hover / selected / focus so those treatments stay theme-owned.
+// Sticky cells paint their own opaque bg — row-level flatten alone leaves zebra on
+// locked columns (e.g. Supplier Name).
+.graphql-grid .k-grid .k-table-alt-row:not(:hover):not(.k-hover):not(.k-selected):not(.k-focus),
+.graphql-grid .k-grid .k-alt:not(:hover):not(.k-hover):not(.k-selected):not(.k-focus),
+.graphql-grid .k-grid .k-table-alt-row:not(:hover):not(.k-hover):not(.k-selected):not(.k-focus)>.k-grid-content-sticky,
+.graphql-grid .k-grid .k-alt:not(:hover):not(.k-hover):not(.k-selected):not(.k-focus)>.k-grid-content-sticky,
+.graphql-grid .k-grid .k-table-alt-row:not(:hover):not(.k-hover):not(.k-selected):not(.k-focus)>.k-table-td,
+.graphql-grid .k-grid .k-alt:not(:hover):not(.k-hover):not(.k-selected):not(.k-focus)>.k-table-td,
+.graphql-grid .k-grid .k-table-alt-row:not(:hover):not(.k-hover):not(.k-selected):not(.k-focus)>td,
+.graphql-grid .k-grid .k-alt:not(:hover):not(.k-hover):not(.k-selected):not(.k-focus)>td {
+  background-color: var(--bg-surface);
+}
+
+// Non-alt sticky cells also get theme zebra/opaque fill — keep one surface.
+.graphql-grid .k-grid .k-master-row:not(:hover):not(.k-hover):not(.k-selected):not(.k-focus)>.k-grid-content-sticky {
+  background-color: var(--bg-surface);
+}
+
+//- Avoid title cropping by using 2 lines when necessary, like in AP, use the same standard.
+.graphql-grid .k-column-title {
+  white-space: normal;
+}
+
+// Header cell: Kendo puts the custom headerCell (title + DS ⋮ menu) inside
+// `.k-column-title`, with the sort glyph as a sibling. `display: contents` lifts
+// both into `.k-link` so the menu can sit on the far right (`order: 2`).
+.graphql-grid .k-grid-header .k-cell-inner {
+  width: 100%;
+  overflow: visible;
+}
+
+.graphql-grid .k-grid-header .k-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 0.25rem;
+  // Theme `.k-cell-inner > .k-link { overflow: hidden }` would clip the ⋮ and
+  // sit it under the sort hit-target; the kebab is a headerCell child of this link.
+  overflow: visible;
+}
+
+.graphql-grid .k-grid-header .k-column-title {
+  display: contents;
+}
+
+// Popup stacking only. Storybook (and hosts with `html` zoom 1) load this sheet — do **not**
+// put `.k-animation-container { zoom: … }` here; it shifts Kendo Tooltip/Popup. Hosts that
+// still use `html { zoom: 0.67 }` compensate in **app** CSS (e.g. AP `_general.scss` on
+// master), not in this shared DS sheet.
+.k-animation-container {
+  z-index: 1070;
+}
+
+// @progress/kendo-svg-icons (grid peer) uses outline pager glyphs; theme only
+// sets `fill: currentColor`, so paths with fill="none" disappear without stroke.
+// Scope to GraphqlGrid pager — unscoped `.k-svg-icon` would bold every Kendo SVG
+// icon in the host (buttons, dropdowns, inputs) with an extra 1px stroke.
+.graphql-grid .k-pager .k-svg-icon > svg {
+  stroke: currentColor;
+}

@@ -1,0 +1,241 @@
+{
+    "name": "@ada/ap",
+    "version": "1.104.0",
+    "versionDate": "10/05/2026",
+    "private": true,
+    "scripts": {
+        "dev": "vite --port 8081",
+        "build": "vite build",
+        "build:serve": "http-server --port 9090 .\\dist\\",
+        "lint": "eslint src --ext .ts,.tsx,.vue",
+        "typecheck": "vue-tsc --noEmit",
+        "e2e:serve": "run-s build build:serve",
+        "e2e:run": "playwright test",
+        "e2e:run:ci": "playwright test --quiet",
+        "e2e:run:headed": "playwright test --headed",
+        "e2e:run:debug": "playwright test --debug",
+        "e2e:report": "npx playwright show-report",
+        "e2e:codegen": "playwright codegen http://localhost:8081",
+        "e2e:codegenlocal": "playwright codegen http://localhost:8081",
+        "env:test": "cross-env test_env=test npx playwright test",
+        "env:test-pr": "cross-env test_env=test npx playwright test --grep '@prq'",
+        "env:test-partial": "cross-env test_env=test npx playwright test --grep-invert '@heavy'",
+        "env:prod": "cross-env test_env=prod npx playwright test",
+        "env:local": "cross-env test_env=local npx playwright test",
+        "env:dev": "cross-env test_env=dev npx playwright test",
+        "test": "vitest",
+        "test:unit": "vitest run tests/Unit",
+        "test:component": "vitest run tests/Component tests/Composables",
+        "test:integration": "vitest run tests/Integration",
+        "test:ci": "vitest run --coverage",
+        "test:ui": "vitest --ui",
+        "test:watch": "vitest watch",
+        "docs": "typedoc"
+    },
+    "dependencies": {
+        "@apollo/client": "^3.13.8",
+        "@progress/kendo-data-query": "^1.7.0",
+        "@progress/kendo-drawing": "1.21.2",
+        "@progress/kendo-licensing": "^1.3.5",
+        "@progress/kendo-listbox-vue-wrapper": "^2024.3.806",
+        "@progress/kendo-map-vue-wrapper": "^2024.3.806",
+        "@progress/kendo-svg-icons": "^2.3.0",
+        "@progress/kendo-theme-bootstrap": "^7.2.1",
+        "@progress/kendo-theme-default": "^7.2.1",
+        "@progress/kendo-ui": "^2024.3.806",
+        "@progress/kendo-vue-animation": "^4.3.3",
+        "@progress/kendo-vue-buttons": "^4.3.3",
+        "@progress/kendo-vue-charts": "^4.3.3",
+        "@progress/kendo-vue-common": "^4.3.3",
+        "@progress/kendo-vue-data-tools": "^4.3.3",
+        "@progress/kendo-vue-dateinputs": "^4.3.3",
+        "@progress/kendo-vue-dialogs": "^4.3.3",
+        "@progress/kendo-vue-dropdowns": "^4.3.3",
+        "@progress/kendo-vue-editor": "^4.3.3",
+        "@progress/kendo-vue-excel-export": "^4.3.3",
+        "@progress/kendo-vue-form": "^4.1.3",
+        "@progress/kendo-vue-gauges": "^4.3.3",
+        "@progress/kendo-vue-grid": "^4.3.3",
+        "@progress/kendo-vue-indicators": "^4.3.3",
+        "@progress/kendo-vue-inputs": "^4.3.3",
+        "@progress/kendo-vue-intl": "^4.3.3",
+        "@progress/kendo-vue-layout": "^4.3.3",
+        "@progress/kendo-vue-pdf": "^4.3.3",
+        "@progress/kendo-vue-popup": "^4.3.3",
+        "@progress/kendo-vue-progressbars": "^4.3.3",
+        "@progress/kendo-vue-tooltip": "^4.3.3",
+        "@progress/kendo-vue-treeview": "^4.1.3",
+        "@sentry/vue": "^9.34.0",
+        "@types/jszip": "^3.4.0",
+        "@vue/apollo-composable": "^4.2.2",
+        "@vueuse/core": "~5.3",
+        "animate.css": "^4.1.1",
+        "axios": "^1.18.0",
+        "bootstrap": "4.6.2",
+        "calculum-ui": "https://pkgs.dev.azure.com/calculum/AI Negotiation/_packaging/calculum-packages/npm/registry/calculum-ui/-/calculum-ui-1.0.97277.tgz",
+        "core-js": "^3.38.1",
+        "dompurify": "^3.2.6",
+        "firebase": "^11.9.1",
+        "graphql": "^16.9.0",
+        "graphql-tag": "^2.12.6",
+        "hammerjs": "^2.0.8",
+        "jquery": "3.5.1",
+        "js-cookie": "2.2.1",
+        "jszip": "^3.10.1",
+        "lodash": "^4.18.1",
+        "normalize.css": "8.0.1",
+        "pinia": "^3.0.3",
+        "pinia-plugin-persistedstate": "^4.4.1",
+        "playright": "^0.0.22",
+        "popper.js": "1.16.1",
+        "posthog-js": "^1.258.2",
+        "secure-ls": "^2.0.0",
+        "uuid-random": "^1.3.2",
+        "vue": "^3.5.17",
+        "vue-draggable-plus": "^0.6.0",
+        "vue-i18n": "^9.9.1",
+        "vue-router": "^4.5.1",
+        "vue-shepherd": "^3.0.0",
+        "vue-toastification": "^2.0.0-rc.5",
+        "vue3-blocks-tree": "^0.6.2",
+        "vue3-tel-input": "1.0.4"
+    },
+    "devDependencies": {
+        "@ada/auth": "workspace:*",
+        "@ada/core": "workspace:*",
+        "@ada/design-system": "workspace:*",
+        "@babel/core": "^7.24.0",
+        "@babel/eslint-parser": "^7.23.10",
+        "@babel/preset-env": "^7.28.0",
+        "@pinia/testing": "^0.1.3",
+        "@playwright/test": "^1.46.0",
+        "@sentry/vite-plugin": "^2.23.1",
+        "@types/jquery": "^4.0.1",
+        "@types/js-cookie": "2.2.6",
+        "@types/jsonwebtoken": "^9.0.6",
+        "@types/lodash": "^4.17.7",
+        "@typescript-eslint/eslint-plugin": "^7.1.1",
+        "@typescript-eslint/parser": "^7.1.1",
+        "@vitejs/plugin-vue": "^5.0.4",
+        "@vitest/coverage-v8": "^3.2.4",
+        "@vitest/ui": "^3.2.4",
+        "@volar-plugins/prettier": "^1.2.0",
+        "@volar-plugins/vetur": "^0.1.0",
+        "@vue/compiler-sfc": "~3.2.13",
+        "@vue/eslint-config-standard": "^8.0.0",
+        "@vue/eslint-config-typescript": "^13.0.0",
+        "@vue/test-utils": "^2.4.5",
+        "baseline-browser-mapping": "^2.9.19",
+        "cross-env": "^7.0.3",
+        "dotenv": "^16.4.5",
+        "eslint": "^8.56.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-boundaries": "^6.0.2",
+        "eslint-plugin-import": "^2.29.1",
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-promise": "^6.1.1",
+        "eslint-plugin-standard": "^5.0.0",
+        "eslint-plugin-vue": "^9.21.1",
+        "happy-dom": "^20.3.0",
+        "http-server": "^14.1.1",
+        "jsdom": "^24.0.0",
+        "less": "^4.2.0",
+        "less-loader": "^11.1.3",
+        "madge": "^8.0.0",
+        "npm-run-all": "^4.1.5",
+        "prettier": "3.3.3",
+        "sass": "^1.72.0",
+        "sass-loader": "^14.1.0",
+        "typedoc": "^0.28.10",
+        "typescript": "~5.3.3",
+        "vite": "^6.4.1",
+        "vite-plugin-vue-devtools": "^7.7.10",
+        "vitest": "^3.2.4",
+        "vue-tsc": "^2.0.0"
+    },
+    "overrides": {
+        "crypto-js": "^4.2.0",
+        "serialize-javascript": "^7.0.5"
+    },
+    "eslintConfig": {
+        "root": true,
+        "env": {
+            "node": true
+        },
+        "extends": [
+            "plugin:vue/base",
+            "plugin:vue/vue3-essential",
+            "plugin:vue/vue3-recommended",
+            "prettier"
+        ],
+        "plugins": [
+            "boundaries"
+        ],
+        "settings": {
+            "boundaries/elements": [
+                {
+                    "type": "app",
+                    "pattern": "apps/ap/src/**"
+                },
+                {
+                    "type": "package",
+                    "pattern": "packages/*/src/**"
+                }
+            ]
+        },
+        "parser": "vue-eslint-parser",
+        "parserOptions": {
+            "parser": "@typescript-eslint/parser",
+            "sourceType": "module",
+            "ecmaVersion": 2022
+        },
+        "rules": {
+            "space-before-function-paren": [
+                0
+            ],
+            "@typescript-eslint/explicit-module-boundary-types": "off",
+            "@typescript-eslint/no-explicit-any": "off",
+            "no-restricted-imports": [
+                "error",
+                {
+                    "paths": [
+                        {
+                            "name": "@/utils/FormatData",
+                            "importNames": [
+                                "formatBigNumbers"
+                            ],
+                            "message": "Use StringUtils.formatBigNumbers (pure) or StringUtils.formatBigCurrency (with currency conversion) instead. See docs/superpowers/plans/2026-05-01-currency-format-consolidation.md."
+                        }
+                    ]
+                }
+            ],
+            "no-restricted-syntax": [
+                "error",
+                {
+                    "selector": "MemberExpression[object.name=/^(formatData|FormatData)$/][property.name='formatBigNumbers']",
+                    "message": "Use StringUtils.formatBigNumbers or StringUtils.formatBigCurrency instead."
+                }
+            ],
+            "boundaries/element-types": [
+                "warn",
+                {
+                    "default": "allow",
+                    "rules": [
+                        {
+                            "from": "package",
+                            "disallow": [
+                                "app"
+                            ],
+                            "message": "Shared packages must not import from app-specific code. Move shared code to a package instead."
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "browserslist": [
+        "> 1%",
+        "last 2 versions",
+        "not dead"
+    ]
+}

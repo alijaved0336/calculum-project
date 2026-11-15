@@ -1,0 +1,233 @@
+/*!
+ * Layout Main
+ */
+
+* {
+  box-sizing: border-box;
+  outline: none;
+}
+html,
+body {
+  height: auto;
+}
+body {
+  font-family: $font-family__main;
+  font-size: $font-main;
+  background-color: var(--bg-page) !important;
+  color: $body-color;
+  margin: 0;
+  padding: 0;
+}
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: $margin__bootstrap;
+}
+a {
+  text-decoration: none;
+  cursor: pointer;
+  border-bottom: $border-link;
+  color: $link-color;
+  transition: $transition;
+  &:hover {
+    text-decoration: none;
+    color: $link-color;
+    border-bottom: $border-link__hover;
+  }
+  &:visited {
+    color: $link-color;
+  }
+}
+p {
+  margin-bottom: $margin__bootstrap;
+  cursor: default;
+}
+div,
+main,
+section,
+article {
+  cursor: default;
+}
+ul {
+  margin: 0;
+  padding: 0;
+  li {
+    list-style: none;
+  }
+}
+sup {
+  color: $color-red;
+  margin-left: 5px;
+}
+i {
+  font-size: $font-icon;
+}
+img {
+  &.img-icon {
+    width: $icon-width;
+    margin-right: $margin__bootstrap;
+  }
+}
+
+
+.modal {
+  z-index: 999 !important;
+}
+
+
+::selection {
+  color: $color-white !important;
+  background-color: $color-red !important;
+}
+
+.custom-select-new {
+  border: unset;
+  padding: 0px 10px 0px 0px;  
+}
+.no-select-border {
+  border: unset !important;
+  padding: 0rem 1.75rem 0rem 0rem;
+  height: unset !important;  
+}
+
+input#search-currencies, input#search-companies, input#search-spendfiles {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 40px;
+  background: #ffffff;
+  border: 1px solid #D0D5DD;
+  box-shadow: 0px 1px 2px rgb(16 24 40 / 5%);
+  border-radius: 8px;
+  flex: none;
+  order: 1;
+  align-self: stretch;
+  flex-grow: 0;
+}
+
+input#search{
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 40px;
+  background: #ffffff;
+  border: 1px solid #D0D5DD;
+  box-shadow: 0px 1px 2px rgb(16 24 40 / 5%);
+  border-radius: 8px;
+  flex: none;
+  order: 1;
+  align-self: stretch;
+  flex-grow: 0;
+  font-size: 0.875rem;
+}
+
+input#search:hover {
+  background: #FFFFFF;
+  color: #000000;
+  border: 1px solid #000000;
+}
+
+input#search:focus {
+  background: #FFFFFF;
+  color: #000000;
+  border: 1px solid $color-primary-300;
+  box-shadow: 0px 0px 0px 4px #FFDFE4;
+}
+
+
+
+/** Disabled / enable radio */
+.disabled-button {
+  justify-content: end;
+  gap: 1.5rem;
+  .rounded-checkbox {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+  }
+
+
+  .rounded-checkbox input {
+    display: none;
+  }
+
+
+  .checkmark-disabled {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 1.1rem;
+    width: 1.1rem;
+    background: $color-primary-50;
+    border: 1px solid $color-primary-600;
+    border-radius: 50%;
+
+    &.disabled-radio {
+      border: 1px solid $color-gray-300;
+      background: $basewhite;
+    }
+
+    &:hover {
+      border: 1px solid $color-primary-600;
+      background: $color-primary-100;
+    }
+  }
+
+  /* Style for the custom checkbox when it's checked */
+  .rounded-checkbox input:checked+.checkmark-disabled::before {
+    content: "";
+    position: absolute;
+    top: 47%;
+    left: 47%;
+    transform: translate(-50%, -50%);
+    width: 0.4rem;
+    height: 0.4rem;
+    background-color: $color-primary-600;
+    border-radius: 50%;
+    display: block;
+  }
+
+  label {
+    display: inline-block;
+    margin-bottom: 0px !important;
+  }
+}
+
+.Vue-Toastification__container.top-right.vt-shifted{
+  top: 81px !important;    /* push it 80 px below the top edge */
+  right: 30px !important;
+}
+
+$zoom-toast-font-size: 16px;
+$zoom-toast-icon-size: 28px;
+
+.zoom-warning-toast {
+  font-size: $zoom-toast-font-size;
+  padding: 20px 24px;
+  min-width: 420px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  
+  .Vue-Toastification__toast-body {
+    font-size: $zoom-toast-font-size;
+    line-height: 1.5;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+  
+  .Vue-Toastification__icon {
+    width: $zoom-toast-icon-size;
+    height: $zoom-toast-icon-size;
+    margin-right: 14px;
+  }
+  
+  .Vue-Toastification__close-button {
+    font-size: 20px;
+    opacity: 0.8;
+  }
+}

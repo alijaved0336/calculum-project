@@ -1,0 +1,181 @@
+// 
+// Kendo UI styles overrides
+// 
+
+@import "../variables/colors";
+@import "../variables/dimensions";
+
+$border-radius:         $border__radius;
+$dark-theme:            false;
+$primary:               $color-primary-500;
+$secondary:             $color-gray-500;
+$info:                  $color-blue;
+$success:               $color-green;
+$warning:               $color-orange;
+$error:                 $color-red;
+$body-text:             $color-black;
+$body-bg:               $color-white;
+$headings-text:         $color-black;
+$subtle-text:           $color-gray-500;
+$disabled-text:         $color-gray-500;
+$component-text:        $color-black;
+$component-bg:          $color-white;
+$base-text:             $color-black;
+$base-bg:               $color-white;
+$hovered-text:          $color-black;
+$hovered-bg:            $color-white;
+$selected-text:         $color-white;
+$selected-bg:           $color-black;
+$kendo-button-text:     $color-white;
+$kendo-button-bg:       $color-black;
+$link-text:             $link-color;
+$link-hover-text:       $link-color;
+$series-a:              #ff2c4f;
+$series-b:              #6f42c1;
+$series-c:              #0d6efd;
+$series-d:              #198754;
+$series-e:              #ffc107;
+$series-f:              #4FCDF0;
+
+@import '@progress/kendo-theme-bootstrap/dist/all.scss';
+
+// Picker
+
+.k-picker-solid {
+  border-color: $color-rows-border;
+  color: $color-rows-text;
+  background-color: $color-rows-background-active;
+
+  &:active {
+    background-color: white;
+    color: $color-black;
+  }
+
+  &:hover {
+    color: $color-gray-700;
+  }
+}
+
+// Dropdown
+
+.k-dropdownlist {
+  &:focus {
+    border-width: 1px;
+  }
+
+  &.k-picker-solid {
+    // border-radius: 0.5rem;
+    background-color: white;
+  }
+
+  .k-input-value-text {
+    color: $color-gray-500;
+
+    &:hover {
+      color: $color-gray-500 !important;
+    }
+  }
+}
+
+.k-picker-solid:focus-within {
+  box-shadow: none;
+}
+
+// List Container
+
+.k-list-container {
+  .k-list-item {
+    // Aria Selected is true then color is white
+    &[aria-selected="true"] {
+      color: $color-white;
+    }
+  }
+}
+
+// K Popup
+
+//for the k pop component in nine boxes for select/reset boxes
+.k-popup.ninebox-popup-settings {
+  position: relative;
+  top: -40px;
+  right: 30px;
+}
+
+//for the home manage team, and admin view
+.k-popup.manage-team-popup-settings {
+  position: relative;
+  right: 80px;
+}
+
+.k-grid td {
+  padding: 1px 0.5rem !important;
+}
+
+// Last Access and Actions columns: ensure vertical border visible (class is on the td)
+.k-grid td.custom-class-for-grid-manage-team {
+  border-left-width: 1px;
+  border-left-style: solid;
+}
+
+.plan-popup-settings {
+  position: absolute !important;
+  right: -20px !important;
+  top: 0 !important;
+  padding: 10px 40px 10px 10px;
+}
+
+.strategies-popup-settings {
+  padding: 10px;
+}
+
+.grid-uppercase-text {
+  text-transform: capitalize;
+}
+
+.grid-capitalize-text {
+  text-transform: capitalize;
+}
+
+.k-checkbox:checked,
+.k-checkbox.k-checked {
+  opacity: 1;
+  background-size: cover;
+  background-image: url("@/resources/assets/images/icons/checklistWhite.svg");
+}
+
+.k-tabstrip-content,
+.k-tabstrip > .k-content {
+  display: none !important;
+}
+
+.k-i-minus::before {
+  content: "\2212";
+}
+
+.k-i-plus::before {
+  content: "\FF0B";
+}
+
+.k-i-arrow-60-up::before {
+  content: "\25B4";
+}
+
+.k-i-arrow-60-down::before {
+  content: "\25BE";
+}
+
+.k-i-arrow-60-left::before {
+  content: "\25C2";
+}
+
+.k-i-arrow-60-right::before {
+  content: "\25B8";
+}
+
+.k-i-checkmark::before {
+  content: "\2611";
+}
+
+.k-master-row.k-table-row.k-selected td {
+  background-color: $color-coolgray-200 !important;
+}

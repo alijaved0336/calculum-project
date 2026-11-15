@@ -1,0 +1,412 @@
+/**
+ * Brand overrides for Kendo Inputs used by DS wrappers
+ * (TextInput, TextArea, CheckBox, RadioButton, ToggleSwitch, RangeSlider).
+ * TextInput / TextArea chrome is scoped to `.ds-text-input` / `.ds-text-area`
+ * so host `.k-input` grids, editors, and pickers stay untouched.
+ *
+ * Load after tokens.css + kendo-theme.css so var(--…) resolve at runtime
+ * (light/dark switch updates these without rebuild).
+ */
+
+@mixin ds-kendo-focus-ring {
+  outline-width: 2px !important;
+  outline-style: solid;
+  outline-offset: 2px;
+  outline-color: var(--accent) !important;
+  box-shadow: none;
+}
+
+/* --- Switch --- */
+.k-switch {
+  --switch-width: 2rem;
+  --switch-height: 1rem;
+  --default-offset: calc(var(--switch-height) / 2);
+  --position-left: var(--default-offset);
+
+  height: var(--switch-height);
+  width: var(--switch-width);
+
+
+  .k-switch-thumb {
+    height: var(--switch-height);
+    width: var(--switch-height);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color-default-2);
+  }
+
+  .k-switch-track {
+    border: 1px solid var(--border-color-default) !important;
+    background: var(--bg-page);
+    width: 100%;
+    height: 100%;
+  }
+
+  &:focus .k-switch-track,
+  &.k-focus .k-switch-track {
+    @include ds-kendo-focus-ring;
+  }
+
+  .k-switch-label-on,
+  .k-switch-label-off {
+    transition: var(--transition-base);
+  }
+
+  .k-switch-label-on {
+    opacity: 0;
+  }
+
+  .k-switch-label-off {
+    opacity: 1;
+  }
+
+  .k-switch-thumb-wrap {
+    left: var(--position-left) !important;
+  }
+
+  &.k-switch-on {
+    .k-switch-label-on {
+      opacity: 1;
+    }
+
+    .k-switch-label-off {
+      opacity: 0;
+    }
+
+    .k-switch-thumb {
+      border-color: var(--accent-2);
+    }
+
+    .k-switch-track {
+      border-color: var(--accent-2) !important;
+
+    }
+
+    .k-switch-thumb-wrap {
+      --position-left: calc(100% - var(--default-offset));
+    }
+  }
+
+  &-md {
+    --switch-width: 2.5rem;
+    --switch-height: 1.25rem;
+  }
+
+  &-lg {
+    --switch-width: 2.75rem;
+    --switch-height: 1.5rem;
+  }
+}
+
+.k-switch-on .k-switch-track {
+  border-color: var(--accent-2);
+  background-color: var(--accent-2);
+}
+
+/* Keep brand track colors; disabled look comes from `.k-switch.k-disabled` opacity */
+.k-switch-on.k-disabled .k-switch-track {
+  background-color: var(--accent-2);
+  border-color: var(--accent-2) !important;
+}
+
+.k-switch-off.k-disabled .k-switch-track {
+  background-color: var(--bg-page);
+  border-color: var(--border-color-default) !important;
+}
+
+/* --- Checkbox --- */
+.k-checkbox:checked,
+.k-checkbox.k-checked,
+.k-checkbox:indeterminate,
+.k-checkbox.k-indeterminate {
+  border-color: var(--accent-2);
+  background-color: var(--accent-2);
+  color: var(--selection-color-text);
+}
+
+.k-checkbox:focus,
+.k-checkbox.k-focus {
+  @include ds-kendo-focus-ring;
+  border-color: var(--border-color-default-2);
+}
+
+.k-checkbox:checked:focus,
+.k-checkbox.k-checked.k-focus,
+.k-checkbox:indeterminate:focus,
+.k-checkbox.k-indeterminate.k-focus {
+  border-color: var(--accent-2);
+  box-shadow: none;
+}
+
+/* Keep brand fill; disabled look comes from `.k-checkbox:disabled` opacity */
+.k-checkbox:checked:disabled,
+.k-checkbox.k-checked.k-disabled,
+.k-checkbox:indeterminate:disabled,
+.k-checkbox.k-indeterminate.k-disabled {
+  border-color: var(--accent-2);
+  background-color: var(--accent-2);
+  color: var(--selection-color-text);
+}
+
+.k-checkbox-wrap .k-ripple-blob {
+  color: var(--accent-2);
+}
+
+/* --- Radio --- */
+.k-radio:checked,
+.k-radio.k-checked {
+  border-color: var(--accent-2);
+  background-color: var(--accent-2);
+  color: var(--selection-color-text);
+}
+
+.k-radio:focus,
+.k-radio.k-focus {
+  @include ds-kendo-focus-ring;
+  border-color: var(--border-color-default-2);
+}
+
+.k-radio:checked:focus,
+.k-radio.k-checked.k-focus {
+  border-color: var(--accent-2);
+  box-shadow: none;
+}
+
+/* Keep brand fill; disabled look comes from `.k-radio:disabled` opacity */
+.k-radio:checked:disabled,
+.k-radio.k-checked.k-disabled {
+  border-color: var(--accent-2);
+  background-color: var(--accent-2);
+  color: var(--selection-color-text);
+}
+
+.k-ripple-container .k-radio::after {
+  background: var(--accent-2);
+}
+
+/* --- Text input / textarea (DS wrappers only) --- */
+/* Kendo Vue Input 9 is a native `input.k-input`; with `label`, `ds-text-input`
+   lands on the FloatingLabel and the field is the child `.k-input`.
+   TextArea is a `.k-textarea` span around `textarea.k-input-inner`. */
+@mixin ds-text-field-chrome {
+  box-sizing: border-box;
+  height: auto;
+  min-height: 0;
+  border-radius: var(--border-radius-default);
+  border-color: var(--border-color-default);
+  background-color: var(--bg-surface);
+  color: var(--color-text-1);
+  box-shadow: none;
+  font-family: var(--font-family-base);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+@mixin ds-text-field-padding-md {
+  padding-block: 0.375rem;
+  padding-inline: 0.75rem;
+}
+
+input.ds-text-input.k-input,
+.ds-text-input .k-input,
+.ds-text-area.k-input,
+.ds-text-area.k-textarea {
+  @include ds-text-field-chrome;
+}
+
+input.ds-text-input.k-input,
+.ds-text-input .k-input {
+  @include ds-text-field-padding-md;
+}
+
+input.ds-text-input.k-input-sm,
+.ds-text-input .k-input-sm {
+  padding-block: 0.25rem;
+  padding-inline: 0.5rem;
+  font-size: 0.875rem;
+}
+
+input.ds-text-input.k-input-lg,
+.ds-text-input .k-input-lg {
+  padding-block: 0.5rem;
+  padding-inline: 1rem;
+}
+
+.ds-text-area {
+  padding: 0;
+
+  .k-input-inner,
+  textarea.k-input-inner {
+    box-sizing: border-box;
+    border: 0;
+    box-shadow: none;
+    height: auto;
+    min-height: 0;
+    background: none;
+    border-radius: inherit;
+    color: inherit;
+    font: inherit;
+    font-size: 1rem !important;
+    line-height: inherit;
+    @include ds-text-field-padding-md;
+  }
+}
+
+input.ds-text-input.k-input::placeholder,
+.ds-text-input .k-input::placeholder,
+.ds-text-area .k-input-inner::placeholder {
+  color: var(--color-text-3);
+  opacity: 1;
+}
+
+/* --- Text input / textarea focus --- */
+.k-input:focus,
+.k-input.k-focus,
+.k-input:focus-within,
+.k-textarea:focus,
+.k-textarea.k-focus,
+.k-textarea:focus-within,
+.k-input-solid:focus,
+.k-input-solid.k-focus,
+.k-input-solid:focus-within,
+.k-input-outline:focus,
+.k-input-outline.k-focus,
+.k-input-outline:focus-within,
+.k-input-flat:focus,
+.k-input-flat.k-focus,
+.k-input-flat:focus-within {
+  @include ds-kendo-focus-ring;
+  border-color: var(--border-color-default-2);
+}
+
+/* --- Range slider --- */
+.k-slider {
+  font-family: var(--font-family-base);
+
+  .k-slider-track {
+    background-color: var(--border-color-default);
+    border-radius: 999px;
+  }
+
+  .k-slider-selection {
+    background-color: var(--accent);
+    border-radius: 999px;
+  }
+
+  .k-draghandle {
+    width: 1.125rem;
+    height: 1.125rem;
+    border-width: 3px;
+    border-color: var(--accent);
+    background-color: var(--bg-surface);
+    color: var(--accent);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--neutral-900) 16%, transparent);
+
+    &:hover,
+    &:active,
+    &.k-pressed,
+    &:focus,
+    &.k-focus {
+      border-color: var(--accent-2);
+      background-color: var(--bg-surface);
+      color: var(--accent-2);
+    }
+
+    &:focus,
+    &.k-focus {
+      box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--focus-ring) 25%, transparent);
+    }
+  }
+
+  &.k-focus .k-draghandle {
+    box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--focus-ring) 25%, transparent);
+  }
+
+  .k-tick {
+    background-image: none !important;
+  }
+
+  .k-label {
+    color: var(--color-text-3);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1;
+  }
+}
+
+.k-slider-horizontal {
+  .k-slider-track-wrap {
+    height: 2.75rem;
+  }
+
+  .k-slider-track,
+  .k-slider-selection {
+    height: 0.375rem;
+    margin-top: -0.1875rem;
+  }
+
+  .k-label {
+    top: auto;
+    bottom: 0;
+    transform: translateX(-50%);
+  }
+
+  .k-first .k-label,
+  .k-last .k-label {
+    transform: translateX(-50%);
+  }
+}
+
+.k-slider-vertical {
+  height: 16rem;
+  width: auto;
+  min-width: 4.5rem;
+
+  .k-slider-track-wrap {
+    width: 2.5rem;
+    height: 100%;
+    min-height: 16rem;
+    flex: 1 1 auto;
+    align-self: stretch;
+    padding-inline-end: 2rem;
+    box-sizing: content-box;
+  }
+
+  .k-slider-items {
+    position: relative;
+    height: 100%;
+    min-height: 100%;
+  }
+
+  .k-slider-track,
+  .k-slider-selection {
+    width: 0.375rem;
+    margin-left: -0.1875rem;
+  }
+
+  .k-label {
+    inset-inline-start: 1.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+  }
+}
+
+.k-slider.k-disabled {
+
+  .k-tick,
+  .k-slider-track,
+  .k-draghandle {
+    cursor: not-allowed;
+  }
+
+  .k-draghandle:hover,
+  .k-draghandle:active,
+  .k-draghandle.k-pressed,
+  .k-draghandle:focus,
+  .k-draghandle.k-focus {
+    border-color: var(--accent);
+    background-color: var(--bg-surface);
+    color: var(--accent);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--neutral-900) 16%, transparent);
+  }
+}

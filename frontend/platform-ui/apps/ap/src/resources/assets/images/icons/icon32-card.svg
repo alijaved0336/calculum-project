@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <g id="icon32_card" data-name="icon32/card" opacity="0.4">
+    <g id="iconfinder_ic_credit_card_48px_3669364" transform="translate(2 4)">
+      <path id="Path" d="M25.4,0H2.822A2.81,2.81,0,0,0,.014,2.822L0,19.757a2.822,2.822,0,0,0,2.822,2.822H25.4a2.822,2.822,0,0,0,2.822-2.822V2.822A2.822,2.822,0,0,0,25.4,0Z" fill="#2c3645"/>
+      <path id="Path-2" data-name="Path" d="M22.579,4.234H0V0H22.579Z" transform="translate(2.822 2.822)" fill="#2c3645"/>
+    </g>
+    <rect id="Rectangle" width="30" height="5" transform="translate(1 11)" fill="#fff"/>
+  </g>
+</svg>

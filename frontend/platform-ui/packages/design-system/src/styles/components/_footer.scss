@@ -1,0 +1,34 @@
+@import "../variables/colors";
+
+.container-footer {
+  padding: 10px 0px;
+}
+
+.privacy-policy {
+  color: red;
+  text-decoration: underline;
+  border: unset;
+}
+
+#terms-of-service {
+  font-weight: 500;
+  color: $color-gray-500;
+}
+
+.confirm-button {
+  justify-content: center;
+}
+
+.manage-cookie {
+  font-weight: 500;
+
+  &:hover {
+    cursor: pointer;
+    border-bottom: 1px solid #667085;
+    color: blue;
+  }
+}
+
+.links-footer {
+  justify-content: end;
+}

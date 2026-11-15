@@ -1,0 +1,50 @@
+/*!
+ * Components Link
+ */
+.link {
+	border: none;
+	&:hover,
+	&:visited {
+		border: none;
+	}
+	&--icon {
+		color: $color-primary;		
+		margin-left: calc(#{$margin}/2);
+		&:hover {
+			color: $color-primary__hover;
+		}
+		&:visited {
+			color: $color-primary;
+			&:hover {
+				color: $color-primary__hover;
+			}
+		}
+		&:active, 
+		&.active {
+			color: $color-primary__hover;
+		}
+		&.link--special {
+			display: flex;
+			align-items: center;
+			font-weight: 600;
+			color: $button-clean-color;
+			&.active {
+				color: $color-primary__hover;
+			}
+		}
+	}
+	&--image {
+		border: none;
+		&:hover {
+			border: none;
+		}
+	}
+	&--secondary {
+		font-weight: 300;
+		color: $color-excerpt;
+		&:hover {
+			color: $body-color;
+		}
+	}	
+}
+

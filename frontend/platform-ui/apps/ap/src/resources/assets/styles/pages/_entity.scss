@@ -1,0 +1,43 @@
+@media(max-width: 1400px) {
+	.block-charts-line {
+		.row {
+			flex-direction: column-reverse;
+		}
+
+		.col-7,
+		.col-5 {
+			flex: 0 0 100%;
+			max-width: 100%;
+		}
+	}
+}
+
+@media(max-width: 1200px) {
+	.block-charts-line {
+		.row {
+			flex-direction: row;
+		}
+
+		.col-7 {
+			flex: 0 0 60%;
+			max-width: 60%;
+		}
+
+		.col-5 {
+			flex: 0 0 40%;
+			max-width: 40%;
+		}
+	}
+}
+
+.org-tree-container {
+	display: flex !important;
+	justify-content: center !important;
+	margin-left: -20px;
+}
+
+.org-tree-node-label-inner {
+	padding: 0 !important;
+  box-shadow: unset !important;
+  border: unset !important;
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "paths": {
+      "@ada/auth": ["./src/index.ts"],
+      "@ada/auth/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}

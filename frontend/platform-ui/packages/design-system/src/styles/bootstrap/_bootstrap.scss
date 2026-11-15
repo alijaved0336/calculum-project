@@ -1,0 +1,12 @@
+// Full Bootstrap 5 (from the `bootstrap` dependency already installed in
+// design-system). Safe to load globally in apps that don't already have
+// their own Bootstrap (like AR) - AP keeps its own Bootstrap 4 and should
+// NOT import this file globally to avoid loading two full frameworks at once.
+
+// Bootstrap's reboot explicitly sets `body { font-family: var(--bs-body-font-family) }`.
+// Without this override, that explicit rule wins over inheriting the "Inter"
+// stack set on `html` (in fonts/_inter.scss), since body no longer inherits
+// once it has its own declaration. Match the same stack here so both agree.
+$font-family-base: "Inter var", "Inter", "system-ui", sans-serif;
+
+@import "bootstrap/scss/bootstrap";

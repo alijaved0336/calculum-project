@@ -1,0 +1,17 @@
+:root {
+  --teal:     #16A394;
+  --teal-700: #0D7A6F;
+  --teal-50:  #F0FDFA;
+  --teal-100: #CCFBF1;
+  --line:     #E5E7EB;
+  --line-2:   #F0F2F5;
+  --chip:     #F3F4F6;
+  --ink:      #111827;
+  --ink-2:    #374151;
+  --muted:    #6B7280;
+  --muted-2:  #9CA3AF;
+  --green:    #2BAB7E;
+  --red:      #E5484D;
+  --amber:    #F59E0B;
+}
+

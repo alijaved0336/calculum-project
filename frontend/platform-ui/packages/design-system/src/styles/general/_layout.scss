@@ -1,0 +1,542 @@
+@import "../variables/colors";
+@import "./fonts";
+
+body {
+  background-color: var(--bg-page);
+}
+
+//- Classes for the main structure for AR & AP
+
+.main-container {
+  padding: 16px 32px 0px 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+section.page-contents {
+  margin-top: 130px;
+  display: flex;
+}
+
+section.page-main-contents {
+  overflow: hidden;
+  width: 100%;
+  margin-left: 115px;
+  min-height: calc(100vh);
+}
+
+//- Layout classes
+
+.container-sections {
+  width: 100%;
+}
+
+.container-top-sections {
+  width: 100%;
+  padding-bottom: 0.875rem;
+}
+
+.sub-main-sections {
+  min-height: 100vh;
+
+  &.potential-theme {
+    min-height: 100vh;
+  }
+}
+
+
+.container-main-sections {
+  width: 100%;
+  height: 125vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0px 0.5rem 0px 0px; // Add left padding to prevent tooltip clipping
+  display: block;
+
+  @media screen and (max-width: 1600px) {
+    height: calc(125vh - 7vh);
+  }
+
+  @media screen and (max-width: 1350px) {
+    height: calc(125vh - 10vh);
+  }
+
+  &.customer-card-section {
+    height: 110vh;
+    background: #f2f4f7;
+    padding: 10px;
+    border-radius: 8px;
+
+    @media screen and (max-width: 1600px) {
+      height: 113vh;
+    }
+
+    @media screen and (max-width: 1350px) {
+      height: 110vh;
+    }
+  }
+
+  &.home-dashboard-with-programs {
+    height: calc(125vh - 5vh) !important;
+
+    @media screen and (max-width: 1600px) {
+      height: calc(125vh - 15vh) !important;
+    }
+
+    @media screen and (max-width: 1350px) {
+      height: calc(125vh - 20vh) !important;
+    }
+  }
+
+  &.entity-home {
+    height: calc(125vh - 5vh) !important;
+
+    @media screen and (max-width: 1600px) {
+      height: calc(125vh - 15vh) !important;
+    }
+
+    @media screen and (max-width: 1350px) {
+      height: calc(125vh - 20vh) !important;
+    }
+  }
+
+  &.plan-sections {
+    height: calc(125vh - 5vh) !important;
+
+    @media screen and (max-width: 1600px) {
+      height: calc(125vh - 15vh) !important;
+    }
+
+    @media screen and (max-width: 1350px) {
+      height: calc(125vh - 25vh) !important;
+    }
+  }
+
+  &.entity-sections {
+    .sub-main-sections {
+      min-height: 123vh;
+    }
+  }
+ &.buyers-section {
+    min-height: calc(100vh - 220px) !important;
+  }
+}
+
+
+.show-scroll {
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: $scrollbar-thumb !important;
+  }
+}
+
+//- Navbar classes
+
+.dropdown-toggle::after {
+  display: none;
+}
+
+button.icons-topbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+  gap: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 26.5px;
+  flex: none;
+  order: 1;
+  flex-grow: 0;
+}
+
+
+button.icons-topbar:hover {
+  background: $color-brand-light;
+
+  svg.navBarIcon {
+    fill: $color-red !important;
+  }
+}
+
+.navBarIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0px;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  order: 1;
+  flex-grow: 0;
+  color: $color-gray-500;
+  fill: $color-gray-500 !important;
+}
+
+
+.user-menu {
+  justify-content: flex-end;
+}
+
+img.user-topbar-logo {
+  height: 40px;
+  width: auto;
+}
+
+header.user-topbar {
+  width: 100%;
+  position: fixed;
+  z-index: 100;
+  padding: 0px 0.5rem;
+  background-color: var(--bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+
+.topbar-container {
+  padding: 0.5rem 0px;
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #EAECF0;
+  vertical-align: middle;
+  display: flex;
+  flex-direction: column;
+
+  &.with-pilot {
+    padding: 0px 0px 16px 0px;
+  }
+}
+
+@media screen and (max-width: 1690px) {
+  .topbar-container.d-flex {
+
+    .col-lg-3,
+    .col-md-3 {
+      flex: 0 0 23.33%;
+    }
+  }
+}
+
+@media screen and (max-width: 1400px) {
+  .topbar-container.d-flex {
+
+    .col-lg-3,
+    .col-md-3 {
+      flex: 0 0 22.5%;
+    }
+  }
+}
+
+@media screen and (max-width: 1050px) {
+  .topbar-container.d-flex {
+
+    .col-lg-3,
+    .col-md-3 {
+      flex: 0 0 20%;
+    }
+  }
+}
+
+@media screen and (max-width: 992px) {
+  .topbar-container.d-flex {
+
+    .col-lg-3,
+    .col-md-3 {
+      flex: 0 0 18%;
+    }
+  }
+}
+
+
+
+//- sidebar switch
+
+.w-100.switch-container {
+  padding: 8px;
+  justify-content: center;
+  justify-items: center;
+}
+
+//- Sidebar classes
+
+div.page-sidebar {
+  position: fixed;
+  z-index: 98;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 4px;
+  width: fit-content;
+  height: 120vh;
+  background: #FFFFFF;
+  border: 1px solid #EAECF0;
+  border-radius: 8px;
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+ul.user-sidebar {
+  width: 100%;
+  padding: 16px 26px;
+  list-style: none;
+}
+
+li.user-sidebar-item {
+  width: 100%;
+  margin-bottom: 25px;
+}
+
+ul.user-sidebar .link--special2 {
+  text-decoration: none;
+  width: 48px;
+  height: 48px;
+  margin: 0px auto 17px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all ease 0.3s;
+  border-bottom: unset;
+
+  span.container-icon {
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    white-space: nowrap;
+    color: $color-gray-500;
+  }
+
+  &:hover {
+    span.container-icon {
+      background: $color-brand-light;
+    }
+
+    span {
+      color: $color-primary-600;
+
+      &:hover {
+        font-weight: 400;
+      }
+    }
+  }
+
+  &.active {
+    span.container-icon {
+      background: $color-brand-light;
+    }
+
+    span {
+      font-weight: 400;
+      color: $color-primary-600;
+
+      &:hover {
+        font-weight: 400;
+      }
+    }
+  }
+}
+
+li.spacer {
+  background-color: $color-gray-200;
+  border-radius: 1px;
+  height: 2px;
+  margin: 0.5rem 0;
+  width: 100%;
+}
+
+.logo-calculum {
+  width: 100%;
+  text-align: center;
+  margin: 15px 0px 15px 0px;
+
+  a,
+  img {
+    text-decoration: none;
+    border: none;
+  }
+
+  .logo-user-sidebar {
+    width: 40px;
+    height: auto;
+  }
+}
+
+//- Common Dropdown classes
+.menu-combo-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.custom-company-dropdown,
+.custom-spendfile-dropdown {
+  position: relative;
+  width: 100%;
+  margin-right: 10px;
+  cursor: pointer;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  background: white;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  min-width: 80px;
+
+  &:hover {
+    border-color: #667085;
+  }
+
+  &.dropdown-active {
+    border: 1px solid $color-primary-300;
+    box-shadow: 0px 0px 0px 4px #FFDFE4;
+  }
+
+  .dropdown-selected {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    min-height: 38px;
+    background: white;
+    border-radius: 0.375rem;
+
+    span {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.875rem;
+      font-weight: 400;
+    }
+
+    .dropdown-arrow {
+      transition: transform 0.2s ease;
+      margin-left: 8px;
+      color: #6c757d;
+      font-size: 0.75rem;
+    }
+  }
+
+  &.dropdown-active .dropdown-arrow {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-options-navbar {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 2px;
+    background: white;
+    border: 1px solid #eaecf0;
+    border-radius: 0 0 0.375rem 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: auto;
+
+    .dropdown-list {
+      max-height: 550px;
+      overflow-y: auto;
+      padding: 0.5rem;
+
+      .dropdown-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 8px;
+        width: 100%;
+        color: #000;
+
+        &:hover {
+          background: $color-gray-100;
+        }
+
+        span {
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-size: 0.875rem;
+          color: #495057;
+        }
+
+        i.fa-check {
+          margin-left: 8px;
+          color: #28a745;
+        }
+
+      }
+    }
+  }
+}
+
+// FOR TOOLTIP TD CELL
+.ellipsis_tooltip_custom_text {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #475467;
+  font-size: 0.75rem;
+  font-family: 'Inter', 'Open Sans', sans-serif;
+  font-weight: 500;
+  line-height: 1.25rem;
+  &.center {
+    text-align: center;
+  }
+}
+
+.ellipsis_custom_with_image {
+  width: calc(100% - 10px);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.ellipsis_custom_flags {
+  width: calc(100% - 40px);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.ellipsis_custom {
+  width: calc(100% - 10px);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+  &.center {
+    text-align: center;
+  }
+}
+
+.ellipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  min-width: 50px;
+  max-width: 295px;
+}

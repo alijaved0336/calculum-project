@@ -1,0 +1,538 @@
+@import "../variables/colors";
+
+/**
+  * Text Size
+  *
+  * NOTE: Taken from https://tailwindcss.com/docs/font-size  v3.3.3
+  */
+.text-xxxs {
+  font-size: 0.5rem; /* 8px */
+}
+
+.text-xxs {
+  font-size: 0.625rem; /* 10px */
+  line-height: 1rem; /* 16px */
+}
+
+.text-xs {
+  font-size: 0.75rem !important; /* 12px */
+  line-height: 1rem; /* 16px */
+}
+
+.text-sm {
+  font-size: 0.875rem !important; /* 14px */
+  line-height: 1.25rem; /* 20px */
+}
+
+.text-base {
+  font-size: 1rem !important; /* 16px */
+  line-height: 1.5rem; /* 24px */
+}
+
+.text-lg {
+  font-size: 1.125rem !important; /* 18px */
+  line-height: 1.75rem; /* 28px */
+}
+
+.text-xl {
+  font-size: 1.25rem !important; /* 20px */
+  line-height: 1.75rem; /* 28px */
+}
+
+
+.na-font-size {
+  font-size: 1rem !important; /* 18px */
+  line-height: 1.75rem; /* 28px */
+}
+
+.text-2xl {
+  font-size: 1.5rem !important; /* 24px */
+  line-height: 2rem; /* 32px */
+}
+
+.text-3xl {
+  font-size: 1.875rem !important; /* 30px */
+  line-height: 2.25rem; /* 36px */
+
+  @media screen and (max-width: 1440px) {
+    font-size: 1.5rem !important; /* 20px */
+  }
+
+
+}
+
+.text-4xl {
+  font-size: 2.25rem !important; /* 36px */
+  line-height: 2.5rem; /* 40px */
+}
+
+.text-5xl {
+  font-size: 3rem !important; /* 48px */
+  line-height: 1;
+
+
+
+  @media screen and (max-width: 1920px) {
+    font-size: 2.25rem !important;
+  }
+
+  @media screen and (max-width: 1280px) {
+      font-size: 1.785rem !important;
+  }
+
+}
+
+.text-6xl {
+  font-size: 3.75rem !important; /* 60px */
+  line-height: 1;
+}
+
+.text-7xl {
+  font-size: 4.5rem !important; /* 72px */
+  line-height: 1;
+}
+
+.text-8xl {
+  font-size: 6rem !important; /* 96px */
+  line-height: 1;
+}
+
+.text-9xl {
+  font-size: 8rem !important; /* 128px */
+  line-height: 1;
+}
+
+/**
+  * Font Weight
+  * Use these font weights for text.
+  *
+  * NOTE: Taken from https://tailwindcss.com/docs/font-weight  v3.3.2
+  */
+.font {
+  &-thin {
+    font-weight: 100 !important;
+  }
+  &-extralight {
+    font-weight: 200 !important;
+  }
+  &-light {
+    font-weight: 300 !important;
+  }
+  &-normal {
+    font-weight: 400 !important; /* Default */
+  }
+  &-medium {
+    font-weight: 500 !important;
+  }
+  &-semibold {
+    font-weight: 600 !important;
+  }
+  &-bold {
+    font-weight: 700 !important;
+  }
+  &-extrabold {
+    font-weight: 800 !important;
+  }
+  &-black {
+    font-weight: 900 !important;
+  }
+}
+
+
+.pdf-export-mode {
+  .font-medium {
+    font-weight: 700 !important;
+  }
+}
+
+
+
+
+
+
+
+/**
+ * Text Overflow
+ *
+ * NOTE: Taken from https://tailwindcss.com/docs/text-overflow  v3.3.3
+ */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis {
+  text-overflow: ellipsis;
+}
+
+.text-clip {
+  text-overflow: clip;
+}
+
+/**
+ * List Style Type
+ *
+ * NOTE: Taken from https://tailwindcss.com/docs/list-style-type  v3.4.1
+ */
+.list-disc {
+  list-style-type: disc !important;
+}
+
+/**
+  * Text Color
+  *
+  * Notes:
+  *  1. We use !important here to override the default Bootstrap styles.
+  *  2. Convention taken from https://tailwindcss.com/docs/text-color  v3.3.5
+  */
+
+.text {
+  &-inherit {
+    color: inherit !important;
+  }
+  &-current {
+    color: currentColor !important;
+  }
+  &-transparent {
+    color: transparent !important;
+  }
+}
+
+// Primary
+.text-primary-50 {
+  color: $color-primary-50;
+}
+
+.text-primary-100 {
+  color: $color-primary-100;
+}
+
+.text-primary-200 {
+  color: $color-primary-200;
+}
+
+.text-primary-300 {
+  color: $color-primary-300;
+}
+
+.text-primary-400 {
+  color: $color-primary-400;
+}
+
+.text-primary-500 {
+  color: $color-primary-500;
+}
+
+.text-primary-600 {
+  color: $color-primary-600;
+}
+
+.text-primary-700 {
+  color: $color-primary-700;
+}
+
+.text-primary-800 {
+  color: $color-primary-800;
+}
+
+.text-primary-900 {
+  color: $color-primary-900;
+}
+
+// Black
+.text-black {
+  &-0 {
+    color: #000000;
+  }
+}
+
+//white
+.text-white {
+  &-0 {
+    color: #ffffff;
+  }
+}
+
+// violet
+.text-violet {
+  &-700 {
+    color: $color-violet-700 !important;
+  }
+}
+
+
+//White
+
+.text-white {
+  color: #ffffff;
+
+}
+
+.text-forecast {
+  color: $color-teal-500;
+}
+
+.text-forecast-warning {
+  color: $color-warning-900;
+}
+
+// Gray
+
+.text-gray {
+  &-25 {
+    color: $color-gray-25 !important;
+  }
+  &-50 {
+    color: $color-gray-50 !important;
+  }
+  &-100 {
+    color: $color-gray-100 !important;
+  }
+  &-200 {
+    color: $color-gray-200 !important;
+  }
+  &-300 {
+    color: $color-gray-300 !important;
+  }
+  &-400 {
+    color: $color-gray-400 !important;
+  }
+  &-500 {
+    color: $color-gray-500 !important;
+  }
+  &-600 {
+    color: $color-gray-600 !important;
+  }
+  &-700 {
+    color: $color-gray-700 !important;
+  }
+  &-800 {
+    color: $color-gray-800 !important;
+  }
+  &-900 {
+    color: $color-gray-900 !important;
+  }
+}
+
+// Error
+.text-error {
+  &-25 {
+    color: $color-error-25;
+  }
+  &-50 {
+    color: $color-error-50;
+  }
+  &-100 {
+    color: $color-error-100;
+  }
+  &-200 {
+    color: $color-error-200;
+  }
+  &-300 {
+    color: $color-error-300;
+  }
+  &-400 {
+    color: $color-error-400;
+  }
+  &-500 {
+    color: $color-error-500;
+  }
+  &-600 {
+    color: $color-error-600;
+  }
+  &-700 {
+    color: $color-error-700;
+  }
+  &-800 {
+    color: $color-error-800;
+  }
+  &-900 {
+    color: $color-error-900;
+  }
+}
+
+// Green
+.text-green {
+  &-25 {
+    color: $color-green-25;
+  }
+  &-50 {
+    color: $color-green-50;
+  }
+  &-100 {
+    color: $color-green-100;
+  }
+  &-200 {
+    color: $color-green-200;
+  }
+  &-300 {
+    color: $color-green-300;
+  }
+  &-400 {
+    color: $color-green-400;
+  }
+  &-500 {
+    color: $color-green-500;
+  }
+  &-600 {
+    color: $color-green-600;
+  }
+  &-700 {
+    color: $color-green-700;
+  }
+  &-800 {
+    color: $color-green-800;
+  }
+  &-900 {
+    color: $color-green-900;
+  }
+}
+
+// Green Light
+
+.text-greenlight {
+  &-25 {
+    color: $color-greenlight-25;
+  }
+  &-50 {
+    color: $color-greenlight-50;
+  }
+  &-100 {
+    color: $color-greenlight-100;
+  }
+  &-200 {
+    color: $color-greenlight-200;
+  }
+  &-300 {
+    color: $color-greenlight-300;
+  }
+  &-400 {
+    color: $color-greenlight-400;
+  }
+  &-500 {
+    color: $color-greenlight-500;
+  }
+  &-600 {
+    color: $color-greenlight-600;
+  }
+  &-700 {
+    color: $color-greenlight-700;
+  }
+  &-800 {
+    color: $color-greenlight-800;
+  }
+  &-900 {
+    color: $color-greenlight-900;
+  }
+}
+
+
+
+.text-brand {
+  &-500 {
+    color: $color-brand-500 !important;
+  }
+}
+
+
+/*** New Text Colors ***/
+
+@each $variant, $shades in $colors {
+  @each $i, $color in $shades {
+    .text-#{$variant}-#{$i} {
+      color: map-get($shades, $i) !important;
+    }
+  }
+}
+
+/**
+  * Text Transform
+  * Utils for controlling the transformation of text.
+  *
+  * NOTE: Taken from https://tailwindcss.com/docs/text-transform  v3.3.6
+  */
+
+.uppercase {
+  text-transform: uppercase !important;
+}
+
+.lowercase {
+  text-transform: lowercase !important;
+}
+
+.capitalize {
+  text-transform: capitalize !important;
+}
+
+.normal-case {
+  text-transform: none !important;
+}
+
+
+
+
+
+/* DEPRECATED - DO NOT USE */
+/* Local literal values (not host-app $font-* variables) so this partial has no
+   external dependency and behaves the same when imported from AP or AR. */
+
+.font {
+  &-main {
+    font-size: 1rem;
+  }
+  &-xl {
+    font-size: 2rem;
+  }
+  &-md {
+    font-size: 0.875rem;
+  }
+  &-sm {
+    font-size: 0.6rem;
+  }
+}
+
+/* END - DEPRECATED - DO NOT USE */
+
+// Code block styling (VSCode Dark Theme)
+pre {
+  background-color: #1e1e1e; // VSCode dark theme background
+  color: #d4d4d4; // VSCode default text color
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+  overflow: auto;
+  max-height: 500px; // Maximum height before scrolling
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+
+  // Scrollbar styling
+  &::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #1e1e1e;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #424242;
+    border: 3px solid #1e1e1e;
+    border-radius: 7px;
+
+    &:hover {
+      background: #4f4f4f;
+    }
+  }
+
+  // Selection styling
+  &::selection {
+    background-color: #264f78;
+  }
+
+  code {
+    font-family: inherit;
+  }
+}

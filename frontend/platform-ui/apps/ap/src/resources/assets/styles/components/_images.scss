@@ -1,0 +1,24 @@
+/*!
+ * Components Images
+ */
+.img-fit {
+	object-fit: cover;
+}
+
+.img-logo {
+	width: $logo-width;
+	height: auto;	
+}
+
+.img-round {
+	border-radius: 50%;
+	object-fit: cover;
+}
+
+
+
+.notificationIcon {
+  height: 43px;
+  width: 43px;
+  color: $color-gray-500;
+}

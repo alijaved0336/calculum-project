@@ -1,0 +1,276 @@
+// The Kendo skin, so AR's grids are laid out the way AP's are.
+//
+// WHY THIS FILE EXISTS. AR adopted the Telerik/Kendo grid (G-22) but never imported a Kendo
+// theme, so every `.k-grid`, `.k-table` and `.k-pager` class the component emits matched no rule
+// at all. The markup was AP's and the layout was nothing's: no header band, no cell padding, no
+// row separators, no pager chrome — a bare table wearing Kendo class names. Adopting the
+// component without its stylesheet is not adopting the grid.
+//
+// AP builds its skin the same way, in apps/ap/.../kendo-ui/Calculum-theme.scss: set the theme's
+// SCSS variables from the platform palette, then import the Bootstrap flavour of the Kendo theme
+// so every component is generated from those values rather than restyled afterwards. The variable
+// block below is that file's, read from it rather than guessed, because the two apps have to
+// generate the same theme to look the same.
+//
+// This is the same interim as `_ap-parity.scss` and carries the same expiry: the permanent fix is
+// one Kendo skin in @ada/design-system that both apps import. It is confined to this file so that
+// migration is a deletion. See G-05.
+
+@import "@ada/design-system/styles/variables/colors";
+
+// ---------------------------------------------------------------------------------------------
+// Theme variables. Every one of these is a token, not a measurement, which is why they can be
+// copied from AP verbatim: they say WHICH colour, not HOW BIG.
+//
+// The sizing variables are NOT copied, and the reason first given for that was wrong. It said AR
+// renders at natural scale while AP renders at `html { zoom: 0.67 }`, so AP's pre-multiplied
+// dimensions would come out half again too large here. AR inherits the same 0.67 from the design
+// system and always did (see `_ap-parity.scss`), so the two apps are on the same scale and that
+// argument does not hold.
+//
+// They stay uncopied anyway, on the narrower ground that the theme's own defaults render
+// acceptably and changing every grid dimension is a visual decision for the project owner rather
+// than a side effect of correcting a comment. Tracked as G-75.
+// ---------------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------------
+// Bootstrap 5 compatibility, and the reason AR needs three lines AP does not.
+//
+// The Bootstrap flavour of the Kendo theme derives its sizes from Bootstrap's own variables, and
+// Bootstrap 5 defines those as CSS custom properties: `$btn-border-width: var(--bs-border-width)`.
+// Kendo then computes `$btn-border-width * 2`, and Sass cannot multiply a `var()` — the build
+// fails outright rather than rendering wrong.
+//
+// AP never hits this because AP is pinned to Bootstrap 4.6, where the same variables are plain
+// lengths. This is the same fault line as `_ap-parity.scss`: two apps, two Bootstrap majors.
+//
+// Reassigning them to the lengths those custom properties resolve to lets the theme compute, and
+// changes nothing about what is painted — `--bs-border-width` IS 1px. Set before the import, so
+// Kendo's `!default` values pick these up.
+// ---------------------------------------------------------------------------------------------
+
+$border-width:          1px;
+$btn-border-width:      1px;
+$input-border-width:    1px;
+
+$border-radius:         0.5rem;   // AP's $border__radius
+$dark-theme:            false;
+$primary:               $color-primary-500;
+$secondary:             $color-gray-500;
+$info:                  $color-blue;
+$success:               $color-green;
+$warning:               $color-orange;
+$error:                 $color-red;
+$body-text:             $color-black;
+$body-bg:               $color-white;
+$headings-text:         $color-black;
+$subtle-text:           $color-gray-500;
+$disabled-text:         $color-gray-500;
+$component-text:        $color-black;
+$component-bg:          $color-white;
+$base-text:             $color-black;
+$base-bg:               $color-white;
+$hovered-text:          $color-black;
+$hovered-bg:            $color-white;
+$selected-text:         $color-white;
+$selected-bg:           $color-black;
+$kendo-button-text:     $color-white;
+$kendo-button-bg:       $color-black;
+$link-text:             $link-color;
+$link-hover-text:       $link-color;
+
+@import "@progress/kendo-theme-bootstrap/dist/all.scss";
+
+// ---------------------------------------------------------------------------------------------
+// Icons: nothing to patch here, and that is worth stating.
+//
+// This theme styles icons with `.k-svg-icon > svg { fill: currentColor }`, which is correct for
+// the FILL-drawn icons of kendo-svg-icons v2 that a 7.2.1 theme was built against.
+//
+// In this monorepo AR resolves the SAME Kendo line AP does: kendo-vue-* 4.3.3 against
+// kendo-svg-icons 2.3.0, verified against the hoisted root before and after adding these
+// dependencies. So the icons are fill-drawn and the theme's assumption already holds.
+//
+// The version of this file written outside the monorepo carried a rule stroking every path with
+// `fill="none"`, because there AR inherited the design system's v9 line and got stroke-drawn v5
+// icons that `fill: currentColor` paints as empty boxes (G-29). That rule is deliberately NOT
+// copied: it exists to correct a resolution that does not happen here, and carrying it would be
+// cargo. If AR ever adopts the v9 components, this is where the problem returns.
+// ---------------------------------------------------------------------------------------------
+
+
+// ---------------------------------------------------------------------------------------------
+// The component overrides AP applies that are about APPEARANCE rather than about its zoom.
+//
+// AP's own file carries more than this — popup positioning for its nine-box and manage-team
+// screens, an icon-font patch, a checkbox image. None of those are copied: they belong to screens
+// AR does not have. Copying them for symmetry would be copying bugs.
+//
+// The one AP override that DID belong here too - `.k-grid td { padding: 1px 0.5rem !important }`,
+// AB#20356's "row height too tall" - is not duplicated in this file: it lives in
+// packages/design-system/src/styles/kendo-grid.scss, scoped to `.graphql-grid`, so both apps'
+// GraphqlGrid-based grids share one definition instead of drifting.
+// ---------------------------------------------------------------------------------------------
+
+// The picker (the pager's page-size dropdown, among others).
+.k-picker-solid {
+  border-color: $color-rows-border;
+  color: $color-rows-text;
+  background-color: $color-rows-background-active;
+
+  &:active {
+    background-color: $color-white;
+    color: $color-black;
+  }
+
+  &:hover {
+    color: $color-gray-700;
+  }
+}
+
+.k-picker-solid:focus-within {
+  box-shadow: none;
+}
+
+.k-dropdownlist {
+  &:focus {
+    border-width: 1px;
+  }
+
+  &.k-picker-solid {
+    background-color: $color-white;
+  }
+
+  .k-input-value-text {
+    color: $color-gray-500;
+
+    &:hover {
+      color: $color-gray-500 !important;
+    }
+  }
+}
+
+// Kendo's own dropdown lists (e.g. the column menu filter's operator picker). Same story as the
+// column menu's active sort item below: Kendo 7.x fills the selected option with $primary (brand
+// red), and its hover with a darker red - both are tinted gray here instead.
+.k-list-container {
+  .k-list-item {
+    &.k-selected,
+    &.k-selected:hover,
+    &.k-selected.k-hover {
+      background-color: $color-gray-200;
+      color: $color-black;
+    }
+  }
+}
+
+// The selected row, which AP tints rather than inverting.
+.k-master-row.k-table-row.k-selected td {
+  background-color: $color-coolgray-200 !important;
+}
+
+// The column menu's active sort item (`.k-selected` on the current direction). Kendo 7.x fills it
+// with $kendo-selected-bg, which defaults to $primary (brand red) — the $selected-bg above is the
+// v4 name and v7 ignores it. A gray tint like the hover keeps the active item readable without the
+// red alarm.
+.k-columnmenu-item.k-selected {
+  background-color: $color-gray-200;
+  color: $color-black;
+}
+
+
+
+// GridColumnMenuFilter's action buttons come from @ada/design-system's GraphqlGrid, which
+// resolves @progress/kendo-vue-grid to 9.1.0 (see packages/design-system/package.json) rather
+// than the 4.3.3 line this app pins. In that Button component fillMode and themeColor render as
+// SEPARATE classes (k-button-solid / k-button-primary) instead of v4.3.3's combined
+// k-button-solid-primary, and GridColumnMenuFilter passes only themeColor (Filter) or nothing at
+// all (Clear) — no size/rounded/fillMode. Selectors below match what v9 actually renders.
+.k-columnmenu-actions {
+  // The Grid renders Filter before Clear in the DOM (kendo-vue-grid's own markup, not ours to
+  // reorder), so the visual swap — Clear first, both pinned to the end — is done with flex order.
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+
+  // Both buttons mirror the design-system CustomButton: Filter is its `accent` variant, Clear its
+  // `default` variant — same tokens, so the grid's filter menu matches AR's other Cancel/Save pairs.
+  .k-button.k-button-primary,
+  .k-button[type="reset"] {
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--border-radius-2) !important;
+    padding: 0 14px;
+    transition: var(--transition-default);
+    width: fit-content;
+    min-height: 32px !important;
+    height: 32px !important;
+
+    &:disabled,
+    &.k-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .k-button.k-button-primary {
+    order: 2;
+    color: var(--neutral-0) !important;
+    background: var(--accent) !important;
+    border: 1px solid transparent !important;
+
+    &:hover:not(:disabled):not(.k-disabled) {
+      background: var(--accent-2) !important;
+      span {
+        color: var(--neutral-0) !important;
+      }
+    }
+  }
+
+  .k-button[type="reset"] {
+    order: 1;
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-color-default-2) !important;
+    color: var(--color-text-1) !important;
+
+    &:hover:not(:disabled):not(.k-disabled) {
+      background-color: var(--bg-page) !important;
+    }
+  }
+}
+
+span.k-button-text:hover {
+  color: inherit !important;
+}
+
+span.k-button-icon:hover {
+  color: inherit !important;
+}
+
+
+th.k-table-th.k-header {
+   font-weight: 700;
+    font-family: "Inter var", sans-serif !important;
+    font-size: 0.8rem;
+    height: 50px !important;
+    padding: 0px 10px !important;
+    vertical-align: middle !important;
+    color: #667085 !important;
+}
+
+.k-grid-header-menu {
+  top: 0px !important;
+  right: -10px !important;
+}
+
+
+th.k-header>div>a>span>svg {
+  display: none !important;
+}
+
+th.k-header>div>a>span {
+  background-image: url("@ada/design-system/assets/icons/filter.svg") !important;
+  background-size: 90% !important;
+  background-repeat: no-repeat !important;
+  background-position: 50% 50% !important;
+}

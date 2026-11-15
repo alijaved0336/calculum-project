@@ -1,0 +1,37 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "types": ["vite/client", "vitest/globals"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "~/*": ["./src/*"],
+      "@ada/auth": ["../../packages/auth/src/index.ts"],
+      "@ada/auth/*": ["../../packages/auth/src/*"],
+      "@ada/core": ["../../packages/core/src/index.ts"],
+      "@ada/core/*": ["../../packages/core/src/*"],
+      "@ada/design-system": ["../../packages/design-system/src/index.ts"],
+      "@ada/design-system/*": ["../../packages/design-system/src/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "e2e/**/*.ts",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    ".output",
+    ".cache",
+    "playwright-report",
+    "e2e/playwright/.cache",
+    "docs"
+  ]
+}
+

@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Negotiation — Latency Test Client</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    font-size: 13px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    background: #1a1d27;
+    border-bottom: 1px solid #2d3148;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  header h1 { font-size: 15px; font-weight: 600; color: #a5b4fc; }
+  .badge {
+    background: #312e81;
+    color: #a5b4fc;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #6b7280;
+    display: inline-block; margin-left: auto;
+    transition: background .3s;
+  }
+  .status-dot.connected { background: #34d399; box-shadow: 0 0 6px #34d399; }
+  .status-dot.error     { background: #f87171; box-shadow: 0 0 6px #f87171; }
+  .status-dot.streaming { background: #fbbf24; box-shadow: 0 0 6px #fbbf24; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .panel { overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .panel-left  { border-right: 1px solid #2d3148; background: #12151e; }
+  .panel-right { background: #0f1117; }
+
+  .card {
+    background: #1a1d27;
+    border: 1px solid #2d3148;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .card-header {
+    background: #1e2235;
+    padding: 7px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .card-header .icon { font-size: 13px; }
+  .card-header .toggle { margin-left: auto; font-size: 10px; color: #4b5563; }
+  .card-body { padding: 10px 12px; }
+
+  label { display: block; color: #94a3b8; font-size: 11px; margin-bottom: 3px; font-weight: 500; }
+  input, select, textarea {
+    width: 100%;
+    background: #0f1117;
+    border: 1px solid #374151;
+    border-radius: 5px;
+    color: #e2e8f0;
+    padding: 6px 9px;
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #6366f1; }
+  textarea { resize: vertical; min-height: 64px; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  button {
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, opacity .2s;
+  }
+  button:hover:not(:disabled) { background: #4338ca; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.secondary { background: #374151; }
+  button.secondary:hover:not(:disabled) { background: #4b5563; }
+  button.danger { background: #991b1b; }
+  button.danger:hover:not(:disabled) { background: #7f1d1d; }
+
+  .btn-row { display: flex; gap: 6px; }
+
+  /* Metrics grid */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .metric-box {
+    background: #0f1117;
+    border: 1px solid #2d3148;
+    border-radius: 6px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .metric-box .mval {
+    font-size: 18px;
+    font-weight: 700;
+    color: #a5b4fc;
+    font-variant-numeric: tabular-nums;
+    display: block;
+  }
+  .metric-box .mlabel {
+    font-size: 9px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-top: 2px;
+    display: block;
+  }
+  .metric-box.highlight .mval { color: #34d399; }
+  .metric-box.warn .mval     { color: #fbbf24; }
+
+  /* Response area */
+  #response-area {
+    background: #0f1117;
+    border: 1px solid #374151;
+    border-radius: 5px;
+    padding: 10px;
+    min-height: 120px;
+    max-height: 240px;
+    overflow-y: auto;
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #e2e8f0;
+  }
+  #response-area .cursor {
+    display: inline-block;
+    width: 2px; height: 14px;
+    background: #6366f1;
+    animation: blink .7s step-end infinite;
+    vertical-align: text-bottom;
+    margin-left: 1px;
+  }
+  @keyframes blink { 50% { opacity:0 } }
+
+  /* Instructions table */
+  .instr-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .instr-table th {
+    text-align: left; padding: 5px 8px;
+    background: #0f1117; color: #6b7280; font-weight: 500;
+    border-bottom: 1px solid #2d3148;
+  }
+  .instr-table td { padding: 5px 8px; border-bottom: 1px solid #1e2235; vertical-align: top; }
+  .instr-table tr:last-child td { border-bottom: none; }
+  .pill {
+    display: inline-block; padding: 1px 7px; border-radius: 9px; font-size: 10px; font-weight: 600;
+  }
+  .pill.on  { background: #064e3b; color: #34d399; }
+  .pill.off { background: #3b0f0f; color: #f87171; }
+
+  /* Intent info */
+  .kv-list { display: grid; grid-template-columns: 120px 1fr; gap: 4px 8px; align-items: start; }
+  .kv-key  { color: #6b7280; font-size: 11px; padding-top: 1px; }
+  .kv-val  { color: #e2e8f0; font-size: 11px; word-break: break-word; }
+  .conf-bar-outer { background: #1e2235; border-radius: 3px; height: 6px; flex: 1; overflow: hidden; }
+  .conf-bar-inner { background: #6366f1; height: 100%; border-radius: 3px; transition: width .3s; }
+  .conf-row { display: flex; align-items: center; gap: 8px; }
+
+  /* RAG sources */
+  .rag-item {
+    background: #0f1117;
+    border: 1px solid #2d3148;
+    border-radius: 5px;
+    padding: 7px 9px;
+    margin-bottom: 5px;
+    font-size: 11px;
+  }
+  .rag-item:last-child { margin-bottom: 0; }
+  .rag-item .rag-file { color: #a5b4fc; font-weight: 600; }
+  .rag-item .rag-pages { color: #6b7280; margin-left: 6px; }
+  .rag-item .rag-preview { color: #94a3b8; margin-top: 3px; font-style: italic; }
+
+  /* Event log */
+  #event-log {
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: 'Menlo', 'Consolas', monospace;
+    font-size: 10.5px;
+  }
+  .log-entry {
+    padding: 4px 0;
+    border-bottom: 1px solid #1e2235;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .log-entry:last-child { border-bottom: none; }
+  .log-time { color: #4b5563; flex-shrink: 0; width: 64px; }
+  .log-type {
+    flex-shrink: 0;
+    width: 64px;
+    font-weight: 700;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-align: center;
+  }
+  .log-type.token  { background: #1e3a5f; color: #60a5fa; }
+  .log-type.intent { background: #1e1a3a; color: #a5b4fc; }
+  .log-type.done   { background: #064e3b; color: #34d399; }
+  .log-type.error  { background: #3b0f0f; color: #f87171; }
+  .log-type.system { background: #1a1d27; color: #6b7280; }
+  .log-body { color: #94a3b8; flex: 1; white-space: pre-wrap; word-break: break-word; }
+  .log-entry.token-entry .log-body { color: #475569; }
+
+  .empty-state { color: #4b5563; font-style: italic; text-align: center; padding: 16px; font-size: 11px; }
+
+  .session-id-display {
+    background: #0f1117;
+    border: 1px solid #374151;
+    border-radius: 5px;
+    padding: 5px 9px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #a5b4fc;
+    word-break: break-all;
+  }
+
+  .instr-count {
+    background: #312e81;
+    color: #a5b4fc;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-weight: 700;
+    margin-left: 4px;
+  }
+
+  .hidden { display: none !important; }
+  .collapsed .card-body { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AI Negotiation</h1>
+  <span class="badge">Latency Test Client</span>
+  <span id="status-label" style="color:#6b7280;font-size:11px;margin-left:4px;">disconnected</span>
+  <span class="status-dot" id="status-dot"></span>
+</header>
+
+<div class="layout">
+
+  <!-- ── LEFT COLUMN ── -->
+  <div class="panel panel-left">
+
+    <!-- Config -->
+    <div class="card">
+      <div class="card-header" onclick="toggleCard(this)">
+        <span class="icon">⚙</span> Connection Config
+        <span class="toggle">▾</span>
+      </div>
+      <div class="card-body">
+        <div style="margin-bottom:8px">
+          <label>Server Host</label>
+          <input id="server-host" type="text" placeholder="localhost:8000">
+        </div>
+        <div>
+          <label>Bearer JWT Token</label>
+          <input id="jwt-token" type="password" placeholder="eyJ...">
+        </div>
+      </div>
+    </div>
+
+    <!-- Session Start -->
+    <div class="card">
+      <div class="card-header" onclick="toggleCard(this)">
+        <span class="icon">🔑</span> Session Start
+        <span class="toggle">▾</span>
+      </div>
+      <div class="card-body">
+        <div class="row" style="margin-bottom:8px">
+          <div>
+            <label>Tenant ID</label>
+            <input id="tenant-id" type="text" placeholder="tenant-uuid">
+          </div>
+          <div>
+            <label>Supplier ID</label>
+            <input id="supplier-id" type="text" placeholder="supplier-uuid">
+          </div>
+        </div>
+        <div style="margin-bottom:8px">
+          <label>User ID <span style="color:#4b5563">(optional)</span></label>
+          <input id="user-id" type="text" placeholder="user-uuid">
+        </div>
+        <button id="btn-start" onclick="startSession()">Start Session</button>
+      </div>
+    </div>
+
+    <!-- Session Info -->
+    <div class="card hidden" id="session-info-card">
+      <div class="card-header" onclick="toggleCard(this)">
+        <span class="icon">📋</span> Active Session
+        <span class="toggle">▾</span>
+      </div>
+      <div class="card-body">
+        <label>Session ID</label>
+        <div class="session-id-display" id="session-id-display">—</div>
+        <div style="margin-top:8px;display:flex;gap:6px;align-items:center">
+          <span style="color:#94a3b8;font-size:11px">Prompt Instructions loaded:</span>
+          <span class="instr-count" id="instr-count-badge">0</span>
+        </div>
+        <div style="margin-top:8px">
+          <button class="danger" onclick="disconnect()" style="font-size:11px;padding:4px 10px">Disconnect</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="card">
+      <div class="card-header" onclick="toggleCard(this)">
+        <span class="icon">💬</span> Chat
+        <span class="toggle">▾</span>
+      </div>
+      <div class="card-body">
+        <div style="margin-bottom:8px">
+          <label>Tone</label>
+          <select id="thread-tone">
+            <option value="">— none —</option>
+            <option value="collaborative">Collaborative</option>
+            <option value="assertive">Assertive</option>
+            <option value="empathetic">Empathetic</option>
+            <option value="firm">Firm</option>
+            <option value="neutral">Neutral</option>
+          </select>
+        </div>
+        <div style="margin-bottom:8px">
+          <label>Message</label>
+          <textarea id="message-input" placeholder="Type your negotiation question…" rows="3"></textarea>
+        </div>
+        <div class="btn-row">
+          <button id="btn-send" onclick="sendMessage()" disabled>Send</button>
+          <button class="secondary" onclick="clearAll()" style="font-size:11px">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Response -->
+    <div class="card" style="flex:1">
+      <div class="card-header">
+        <span class="icon">📝</span> Response
+        <span id="token-counter-inline" style="margin-left:auto;color:#6b7280;font-size:10px"></span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <div id="response-area"><span style="color:#4b5563;font-style:italic">Response will stream here…</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── RIGHT COLUMN ── -->
+  <div class="panel panel-right">
+
+    <!-- Latency Metrics -->
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">⚡</span> Latency Metrics
+        <span id="streaming-badge" class="badge hidden" style="margin-left:auto;background:#78350f;color:#fcd34d">STREAMING</span>
+      </div>
+      <div class="card-body">
+        <div class="metrics-grid">
+          <div class="metric-box highlight">
+            <span class="mval" id="m-ttft">—</span>
+            <span class="mlabel">TTFT</span>
+          </div>
+          <div class="metric-box">
+            <span class="mval" id="m-stream-dur">—</span>
+            <span class="mlabel">Stream Duration</span>
+          </div>
+          <div class="metric-box">
+            <span class="mval" id="m-total">—</span>
+            <span class="mlabel">Total Round-trip</span>
+          </div>
+          <div class="metric-box">
+            <span class="mval" id="m-backend">—</span>
+            <span class="mlabel">Backend Time</span>
+          </div>
+          <div class="metric-box warn">
+            <span class="mval" id="m-overhead">—</span>
+            <span class="mlabel">Network Overhead</span>
+          </div>
+          <div class="metric-box">
+            <span class="mval" id="m-token-rate">—</span>
+            <span class="mlabel">Token Rate</span>
+          </div>
+          <div class="metric-box">
+            <span class="mval" id="m-tokens">0</span>
+            <span class="mlabel">Tokens Received</span>
+          </div>
+          <div class="metric-box">
+            <span class="mval" id="m-usage">—</span>
+            <span class="mlabel">Total Tokens (BE)</span>
+          </div>
+        </div>
+        <div style="margin-top:8px;color:#4b5563;font-size:10px;text-align:right">
+          * TTFT &amp; durations are client-side via performance.now() &nbsp;|&nbsp; Backend Time from done.timing
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent Instructions -->
+    <div class="card">
+      <div class="card-header" onclick="toggleCard(this)">
+        <span class="icon">📜</span> Agent Instructions (from Session Start)
+        <span id="instr-badge" class="instr-count hidden">0</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="card-body">
+        <div id="instr-panel">
+          <div class="empty-state">Start a session to load instructions</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Intent & Agent -->
+    <div class="card">
+      <div class="card-header" onclick="toggleCard(this)">
+        <span class="icon">🎯</span> Intent &amp; Agent Routing
+        <span class="toggle">▾</span>
+      </div>
+      <div class="card-body">
+        <div id="intent-panel">
+          <div class="empty-state">Send a message to see intent classification</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RAG Sources -->
+    <div class="card">
+      <div class="card-header" onclick="toggleCard(this)">
+        <span class="icon">📚</span> RAG Sources
+        <span id="rag-count-badge" class="instr-count hidden">0</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="card-body">
+        <div id="rag-panel">
+          <div class="empty-state">RAG sources will appear after a response</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Raw Event Log -->
+    <div class="card" style="flex:1">
+      <div class="card-header" onclick="toggleCard(this)">
+        <span class="icon">🗒</span> Raw Event Log
+        <button class="secondary" style="margin-left:auto;font-size:10px;padding:2px 8px" onclick="clearLog(event)">Clear</button>
+        <span class="toggle" style="margin-left:6px">▾</span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <div id="event-log" style="padding:6px 10px">
+          <div class="empty-state">WS events will appear here</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let ws = null;
+let sessionId = null;
+let sendTime = null;
+let firstTokenTime = null;
+let tokenCount = 0;
+let isStreaming = false;
+let fullResponse = '';
+let tokenRateTimer = null;
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('server-host').value = window.location.host || 'localhost:8000';
+  document.getElementById('message-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendMessage();
+  });
+});
+
+// ── Card toggle ──────────────────────────────────────────────────────────────
+function toggleCard(header) {
+  const card = header.closest('.card');
+  card.classList.toggle('collapsed');
+  header.querySelector('.toggle').textContent = card.classList.contains('collapsed') ? '▸' : '▾';
+}
+
+// ── Session Start ─────────────────────────────────────────────────────────────
+async function startSession() {
+  const host  = document.getElementById('server-host').value.trim();
+  const jwt   = document.getElementById('jwt-token').value.trim();
+  const tenantId   = document.getElementById('tenant-id').value.trim();
+  const supplierId = document.getElementById('supplier-id').value.trim();
+  const userId     = document.getElementById('user-id').value.trim();
+
+  if (!jwt)        { logSystem('ERROR: JWT token is required'); return; }
+  if (!tenantId)   { logSystem('ERROR: Tenant ID is required'); return; }
+  if (!supplierId) { logSystem('ERROR: Supplier ID is required'); return; }
+
+  logSystem('Starting session…');
+  document.getElementById('btn-start').disabled = true;
+
+  const body = { tenant_id: tenantId, supplier_id: supplierId };
+  if (userId) body.user_id = userId;
+
+  try {
+    const proto = window.location.protocol === 'https:' ? 'https' : 'http';
+    const res = await fetch(`${proto}://${host}/session/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${jwt}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      logSystem(`ERROR: Session start failed ${res.status} — ${txt}`);
+      document.getElementById('btn-start').disabled = false;
+      return;
+    }
+
+    const data = await res.json();
+    sessionId = data.session_id;
+
+    logSystem(`Session started: ${sessionId}`);
+    document.getElementById('session-id-display').textContent = sessionId;
+    document.getElementById('session-info-card').classList.remove('hidden');
+
+    // Render prompt instructions
+    renderInstructions(data.settings?.promptInstructions || data.settings?.prompt_instructions || null);
+
+    // Connect WebSocket
+    connectWS(host, jwt);
+
+  } catch (err) {
+    logSystem(`ERROR: ${err.message}`);
+    document.getElementById('btn-start').disabled = false;
+  }
+}
+
+// ── WebSocket ─────────────────────────────────────────────────────────────────
+function connectWS(host, jwt) {
+  const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const url = `${proto}://${host}/${sessionId}/negotiation/chat?token=${encodeURIComponent(jwt)}`;
+  logSystem(`Connecting WS: ${url}`);
+
+  ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    setStatus('connected', 'connected');
+    document.getElementById('btn-send').disabled = false;
+    logSystem('WebSocket connected');
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      handleMessage(msg);
+    } catch(e) {
+      logSystem(`Parse error: ${e.message}`);
+    }
+  };
+
+  ws.onerror = (e) => {
+    setStatus('error', 'error');
+    logSystem('WebSocket error — check console');
+  };
+
+  ws.onclose = (e) => {
+    setStatus('disconnected', 'disconnected');
+    document.getElementById('btn-send').disabled = true;
+    logSystem(`WebSocket closed (code=${e.code})`);
+    stopTokenRateTimer();
+  };
+}
+
+// ── Message handler ───────────────────────────────────────────────────────────
+function handleMessage(msg) {
+  const now = performance.now();
+
+  switch (msg.type) {
+    case 'token': {
+      if (!firstTokenTime) {
+        firstTokenTime = now;
+        const ttft = firstTokenTime - sendTime;
+        setMetric('m-ttft', fmtMs(ttft));
+        document.getElementById('m-ttft').closest('.metric-box').classList.add('highlight');
+        isStreaming = true;
+        document.getElementById('streaming-badge').classList.remove('hidden');
+        setStatus('streaming', 'streaming…');
+        startTokenRateTimer();
+      }
+      tokenCount++;
+      fullResponse += msg.data;
+      renderResponse(fullResponse, true);
+      setMetric('m-tokens', tokenCount);
+      addTokenLog(msg.data);
+      break;
+    }
+
+    case 'intent': {
+      addEventLog('intent', JSON.stringify(msg.data, null, 2));
+      if (msg.data) renderIntent(msg.data);
+      break;
+    }
+
+    case 'done': {
+      isStreaming = false;
+      stopTokenRateTimer();
+      document.getElementById('streaming-badge').classList.add('hidden');
+      setStatus('connected', 'connected');
+
+      const total = now - sendTime;
+      const streamDur = now - (firstTokenTime || now);
+      const backendMs = (msg.data?.timing?.duration_seconds || 0) * 1000;
+      const overhead  = total - backendMs;
+      const rate = tokenCount > 0 && streamDur > 0
+        ? (tokenCount / (streamDur / 1000)).toFixed(1)
+        : '—';
+
+      setMetric('m-stream-dur', fmtMs(streamDur));
+      setMetric('m-total',      fmtMs(total));
+      setMetric('m-backend',    fmtMs(backendMs));
+      setMetric('m-overhead',   fmtMs(overhead));
+      setMetric('m-token-rate', tokenCount > 0 ? `${rate} t/s` : '—');
+
+      const usage = msg.data?.usage;
+      if (usage) setMetric('m-usage', usage.total_tokens);
+
+      renderResponse(fullResponse, false);
+
+      if (msg.data?.rag_sources) renderRAGSources(msg.data.rag_sources);
+
+      addEventLog('done', JSON.stringify({
+        timing: msg.data?.timing,
+        usage: msg.data?.usage,
+        rag_source_count: (msg.data?.rag_sources || []).length,
+        follow_ups: msg.data?.follow_ups,
+        is_playbook: msg.data?.is_playbook,
+      }, null, 2));
+      break;
+    }
+
+    case 'error': {
+      setStatus('error', 'error');
+      isStreaming = false;
+      stopTokenRateTimer();
+      document.getElementById('streaming-badge').classList.add('hidden');
+      addEventLog('error', typeof msg.data === 'string' ? msg.data : JSON.stringify(msg.data));
+      renderResponse(`[ERROR] ${msg.data}`, false);
+      break;
+    }
+  }
+}
+
+// ── Send message ──────────────────────────────────────────────────────────────
+function sendMessage() {
+  const msg  = document.getElementById('message-input').value.trim();
+  const tone = document.getElementById('thread-tone').value;
+  if (!msg || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+  // Reset state
+  sendTime = performance.now();
+  firstTokenTime = null;
+  tokenCount = 0;
+  fullResponse = '';
+  isStreaming = false;
+
+  setMetric('m-ttft',       '—');
+  setMetric('m-stream-dur', '—');
+  setMetric('m-total',      '—');
+  setMetric('m-backend',    '—');
+  setMetric('m-overhead',   '—');
+  setMetric('m-token-rate', '—');
+  setMetric('m-tokens',     '0');
+  setMetric('m-usage',      '—');
+  document.getElementById('response-area').innerHTML = '';
+  document.getElementById('intent-panel').innerHTML = '<div class="empty-state">Waiting for intent…</div>';
+  document.getElementById('rag-panel').innerHTML = '<div class="empty-state">Waiting for response…</div>';
+  document.getElementById('token-counter-inline').textContent = '';
+
+  const payload = { message: msg };
+  if (tone) payload.thread_tone = tone;
+
+  ws.send(JSON.stringify(payload));
+  addEventLog('system', `→ sent: ${msg.substring(0, 80)}${msg.length > 80 ? '…' : ''}`);
+}
+
+// ── Disconnect ────────────────────────────────────────────────────────────────
+function disconnect() {
+  if (ws) ws.close();
+  sessionId = null;
+  document.getElementById('session-info-card').classList.add('hidden');
+  document.getElementById('btn-start').disabled = false;
+  document.getElementById('btn-send').disabled = true;
+  clearAll();
+}
+
+function clearAll() {
+  document.getElementById('response-area').innerHTML = '<span style="color:#4b5563;font-style:italic">Response will stream here…</span>';
+  fullResponse = '';
+  tokenCount = 0;
+  setMetric('m-ttft',       '—');
+  setMetric('m-stream-dur', '—');
+  setMetric('m-total',      '—');
+  setMetric('m-backend',    '—');
+  setMetric('m-overhead',   '—');
+  setMetric('m-token-rate', '—');
+  setMetric('m-tokens',     '0');
+  setMetric('m-usage',      '—');
+  document.getElementById('token-counter-inline').textContent = '';
+  document.getElementById('intent-panel').innerHTML = '<div class="empty-state">Send a message to see intent classification</div>';
+  document.getElementById('rag-panel').innerHTML = '<div class="empty-state">RAG sources will appear after a response</div>';
+}
+
+// ── Render helpers ────────────────────────────────────────────────────────────
+function renderResponse(text, streaming) {
+  const el = document.getElementById('response-area');
+  el.innerHTML = escHtml(text) + (streaming ? '<span class="cursor"></span>' : '');
+  el.scrollTop = el.scrollHeight;
+  document.getElementById('token-counter-inline').textContent = `${tokenCount} tokens`;
+}
+
+function renderInstructions(instrMap) {
+  const panel = document.getElementById('instr-panel');
+  const badge = document.getElementById('instr-badge');
+  const countBadge = document.getElementById('instr-count-badge');
+
+  if (!instrMap || Object.keys(instrMap).length === 0) {
+    panel.innerHTML = '<div class="empty-state">No prompt instructions configured for this tenant</div>';
+    badge.textContent = '0';
+    countBadge.textContent = '0';
+    badge.classList.remove('hidden');
+    return;
+  }
+
+  const entries = Object.entries(instrMap);
+  badge.textContent = entries.length;
+  badge.classList.remove('hidden');
+  countBadge.textContent = entries.length;
+
+  let html = '<table class="instr-table"><thead><tr><th>Instruction</th><th style="width:56px">Status</th></tr></thead><tbody>';
+  for (const [key, val] of entries) {
+    const enabled = val.isEnabled !== false && val.is_enabled !== false;
+    const promptText = val.prompt || val.Prompt || key;
+    html += `<tr>
+      <td style="color:#e2e8f0">${escHtml(promptText)}</td>
+      <td><span class="pill ${enabled ? 'on' : 'off'}">${enabled ? 'ON' : 'OFF'}</span></td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  panel.innerHTML = html;
+}
+
+function renderIntent(data) {
+  if (!data || !data.intent) {
+    document.getElementById('intent-panel').innerHTML = '<div class="empty-state">No intent data received</div>';
+    return;
+  }
+  const conf = Math.round((data.confidence || 0) * 100);
+  document.getElementById('intent-panel').innerHTML = `
+    <div class="kv-list">
+      <span class="kv-key">Intent</span>
+      <span class="kv-val" style="color:#a5b4fc;font-weight:600">${escHtml(data.intent)}</span>
+
+      <span class="kv-key">Agent</span>
+      <span class="kv-val" style="color:#34d399;font-weight:600">${escHtml(data.agent || '—')}</span>
+
+      <span class="kv-key">Confidence</span>
+      <span class="kv-val">
+        <div class="conf-row">
+          <div class="conf-bar-outer"><div class="conf-bar-inner" style="width:${conf}%"></div></div>
+          <span style="color:#e2e8f0;font-weight:700;width:34px;text-align:right">${conf}%</span>
+          ${data.low_confidence ? '<span class="pill off" style="margin-left:4px">LOW</span>' : ''}
+        </div>
+      </span>
+
+      <span class="kv-key">Group</span>
+      <span class="kv-val">${escHtml(data.group || '—')}</span>
+
+      <span class="kv-key">Response Mode</span>
+      <span class="kv-val">${escHtml(data.response_mode || '—')}</span>
+
+      <span class="kv-key">Reasoning</span>
+      <span class="kv-val" style="color:#94a3b8;font-style:italic">${escHtml(data.reasoning || '—')}</span>
+    </div>`;
+}
+
+function renderRAGSources(sources) {
+  const panel = document.getElementById('rag-panel');
+  const badge = document.getElementById('rag-count-badge');
+  badge.textContent = sources.length;
+  badge.classList.remove('hidden');
+
+  if (!sources.length) {
+    panel.innerHTML = '<div class="empty-state">No RAG sources used for this response</div>';
+    return;
+  }
+
+  let html = '';
+  for (const src of sources) {
+    const filename = src.filename || src.file_uuid || src.file_id || 'unknown';
+    const pages = (src.pages || src.page_numbers || []).join(', ');
+    const preview = src.text ? src.text.substring(0, 120) + (src.text.length > 120 ? '…' : '') : '';
+    html += `<div class="rag-item">
+      <span class="rag-file">${escHtml(filename)}</span>
+      ${pages ? `<span class="rag-pages">p. ${escHtml(pages)}</span>` : ''}
+      ${preview ? `<div class="rag-preview">"${escHtml(preview)}"</div>` : ''}
+    </div>`;
+  }
+  panel.innerHTML = html;
+}
+
+// ── Event log ─────────────────────────────────────────────────────────────────
+let tokenLogBuffer = [];
+let tokenLogFlushTimer = null;
+let tokenLogCount = 0;
+
+function addTokenLog(tok) {
+  tokenLogBuffer.push(tok);
+  tokenLogCount++;
+  if (!tokenLogFlushTimer) {
+    tokenLogFlushTimer = setTimeout(flushTokenLog, 200);
+  }
+}
+
+function flushTokenLog() {
+  tokenLogFlushTimer = null;
+  if (!tokenLogBuffer.length) return;
+  const joined = tokenLogBuffer.join('');
+  tokenLogBuffer = [];
+  const log = document.getElementById('event-log');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry token-entry';
+  entry.innerHTML = `
+    <span class="log-time">${nowStr()}</span>
+    <span class="log-type token">token ×${tokenLogCount > 1 ? '…' : '1'}</span>
+    <span class="log-body">${escHtml(joined.substring(0, 80))}${joined.length > 80 ? '…' : ''}</span>`;
+  log.insertBefore(entry, log.firstChild);
+  if (log.children.length > 200) log.removeChild(log.lastChild);
+}
+
+function addEventLog(type, body) {
+  const log = document.getElementById('event-log');
+  if (log.querySelector('.empty-state')) log.innerHTML = '';
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `
+    <span class="log-time">${nowStr()}</span>
+    <span class="log-type ${type}">${type}</span>
+    <span class="log-body">${escHtml(body)}</span>`;
+  log.insertBefore(entry, log.firstChild);
+  if (log.children.length > 200) log.removeChild(log.lastChild);
+}
+
+function logSystem(msg) {
+  addEventLog('system', msg);
+}
+
+function clearLog(e) {
+  e && e.stopPropagation();
+  document.getElementById('event-log').innerHTML = '<div class="empty-state">Log cleared</div>';
+  tokenLogCount = 0;
+}
+
+// ── Token rate live update ────────────────────────────────────────────────────
+function startTokenRateTimer() {
+  stopTokenRateTimer();
+  tokenRateTimer = setInterval(() => {
+    if (!isStreaming || !firstTokenTime) return;
+    const elapsed = (performance.now() - firstTokenTime) / 1000;
+    if (elapsed > 0 && tokenCount > 0) {
+      const rate = (tokenCount / elapsed).toFixed(1);
+      setMetric('m-token-rate', `${rate} t/s`);
+      setMetric('m-stream-dur', fmtMs(performance.now() - firstTokenTime));
+    }
+  }, 250);
+}
+
+function stopTokenRateTimer() {
+  if (tokenRateTimer) { clearInterval(tokenRateTimer); tokenRateTimer = null; }
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function setStatus(cls, label) {
+  const dot = document.getElementById('status-dot');
+  dot.className = `status-dot ${cls}`;
+  document.getElementById('status-label').textContent = label;
+}
+
+function setMetric(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function fmtMs(ms) {
+  if (ms == null || isNaN(ms)) return '—';
+  if (ms >= 1000) return `${(ms / 1000).toFixed(2)}s`;
+  return `${Math.round(ms)}ms`;
+}
+
+function nowStr() {
+  const d = new Date();
+  return d.toTimeString().slice(0, 8) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+}
+
+function escHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>

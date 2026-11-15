@@ -1,0 +1,43 @@
+
+{
+  "pre_tax_wacc": 0.092,
+  "after_tax_wacc": 0.09,
+  "cpt_base_rate": 0.0366,
+
+  "volume": 40125938.660000004,
+  "currency_rate": 1.0,
+  "period": 365,
+  "actual_payment_terms": 17,
+  "contractual_actual": 17,
+  "contractual_pt_without_cd": 17,
+  "contractual_pt_with_cd": 17,
+  "cash_discount": 0.02,
+  "avg_days_to_approve_invoice": 5,
+
+  "financing_enabled": true,
+  "financing_method": "FINANCIAL_RATE",
+  "funding_cost": 0.10,
+  "financing_base_rate": 5.0,
+  "financing_funding_spread": 3.0,
+  "financing_is_auto_base_rate": false,
+
+  "supplier_standard": 75,
+  "peer_group_avg": 60,
+  "industry_region_standard": 70,
+  "industry_group": 65,
+  "region_group": 55,
+  "scf_standard": 90,
+  "supplier_max": 60,
+  "parent_supplier_max": 75,
+  "regulatory_terms": 120,
+  "buyer_standard_terms": 60,
+  "buyer_standard_behavior": "LOW_LIMIT",
+  "buyer_leverage_level": "MEDIUM",
+  "capped_allowed": true,
+  "vcard_applied": false,
+  "vcard_avg_term_reduction": 0,
+  "vcard_allows_term_extension": true,
+  
+  "program_excluded": false
+}
+

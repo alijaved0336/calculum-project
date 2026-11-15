@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "paths": {
+      "@ada/design-system": ["./src/index.ts"],
+      "@ada/design-system/*": ["./src/*"],
+      "@ds-storybook/argTypes": ["./.storybook/argTypes.ts"],
+      // vue3-google-map@0.15.0's package.json `exports` map declares no `types` condition, so
+      // `moduleResolution: bundler` (this config, unlike apps/ap's own classic resolution) cannot
+      // find its real declarations via normal resolution and falls back to implicit `any` - this
+      // points straight at the file TS's own error already confirms exists.
+      "vue3-google-map": ["./node_modules/vue3-google-map/dist/types/index.d.ts"]
+    }
+  },
+  "include": ["src/**/*", ".storybook/**/*", "src/vite-env.d.ts"]
+}

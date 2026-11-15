@@ -1,0 +1,76 @@
+/*!
+ * Page Login
+ */
+.img-exposure {
+	position: relative;
+	&__author {
+		position: absolute;
+		background-color: $body-bg;
+		border-radius: $margin;
+		padding: 10px $margin;
+		left: $margin;
+		bottom: $margin;
+	}
+}
+
+.page {
+  &__login {
+    height: 100vh;
+    background:  rgba(44, 54, 69, 0.1);
+    padding: 2% 0 5%;
+    overflow: hidden;
+    display: flex;
+    .card {
+      max-width: 30%;
+      margin: auto;
+      padding: 1% 2%;
+    }
+  }
+
+  @media screen and (max-width: 860px) {
+    &__login {
+      padding: 0;
+    }
+    .card {
+      min-width: 100vw;
+      min-height: 100vh;
+      padding: 2rem 30% 5rem;
+    }
+  }
+
+  @media screen and (max-width: 660px) {
+    .card {
+      padding: 2rem 20% 5rem;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .card {
+      padding: 2rem 2rem 5rem;
+    }
+  }
+}
+.login__body {
+  h1 { font-weight: 400}
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active  {
+    -webkit-box-shadow: 0 0 0 50px white inset !important;
+    box-shadow: 0 0 0 50px white inset !important;
+  }
+  .is-caps-lock {
+    width: 100%;
+    text-align: right;
+    color: #FF2C4F;
+    margin-top: -16px;
+  }
+}
+.login__footer {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 0;
+}

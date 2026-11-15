@@ -1,0 +1,202 @@
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    exclude:
+      - "*.md"
+      - "docs/**"
+
+pr:
+  branches:
+    include:
+      - master
+
+variables:
+  GCP_PROJECT_ID: "ai-negotiation-494315"
+  GCP_REGION: "us-central1"
+  AR_REPO: "core-calculum"
+  IMAGE_NAME: "calculum-ui"
+  CLOUD_RUN_SERVICE: "calculum-ui-staging"
+  IMAGE_URI: "$(GCP_REGION)-docker.pkg.dev/$(GCP_PROJECT_ID)/$(AR_REPO)/$(IMAGE_NAME)"
+
+# ─────────────────────────────────────────────
+# STAGE 1 — Type Check
+# ─────────────────────────────────────────────
+stages:
+  - stage: Test
+    displayName: "Type Check"
+    jobs:
+      - job: TypeCheck
+        displayName: "vue-tsc"
+        pool:
+          name: "self-hosted-mac"
+        steps:
+          - task: Bash@3
+            displayName: "Install dependencies"
+            inputs:
+              targetType: "inline"
+              script: npm ci
+
+          - task: Bash@3
+            displayName: "Type check (non-blocking)"
+            inputs:
+              targetType: "inline"
+              script: npx vue-tsc -b --noEmit || true
+
+  # ─────────────────────────────────────────────
+  # STAGE 2 — Build & Push
+  # ─────────────────────────────────────────────
+  - stage: Build
+    displayName: "Build & Push to Artifact Registry"
+    dependsOn: Test
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    variables:
+      - group: calculum-ui-staging
+    jobs:
+      - job: BuildAndPush
+        displayName: "Docker build → Artifact Registry"
+        pool:
+          name: "self-hosted-mac"
+        steps:
+          - task: Bash@3
+            displayName: "Preflight: docker + free space"
+            inputs:
+              targetType: "inline"
+              script: |
+                set -e
+                docker info >/dev/null 2>&1 || { echo "##vso[task.logissue type=error]Docker daemon not running on agent"; exit 1; }
+                df -h /
+                USED=$(df / | awk 'NR==2 {gsub("%","",$5); print $5}')
+                if [ "$USED" -ge 70 ]; then
+                  echo "Disk ${USED}% used — pruning images + build cache older than 72h"
+                  docker image prune -af --filter "until=72h" || true
+                  docker builder prune -f  --filter "until=72h" || true
+                  docker container prune -f || true
+                fi
+                USED=$(df / | awk 'NR==2 {gsub("%","",$5); print $5}')
+                if [ "$USED" -ge 90 ]; then
+                  echo "Still ${USED}% — aggressive full prune (next build starts cold)"
+                  docker system prune -af  || true
+                  docker builder prune -af || true
+                fi
+                df -h /
+
+          - task: Bash@3
+            displayName: "Authenticate to GCP"
+            inputs:
+              targetType: "inline"
+              script: |
+                echo "$(GCP_SA_KEY)" > /tmp/sa-key.json
+                gcloud auth activate-service-account --key-file=/tmp/sa-key.json
+                gcloud config set project $(GCP_PROJECT_ID)
+            env:
+              GCP_SA_KEY: $(GCP_SA_KEY)
+
+          - task: Bash@3
+            displayName: "Build Docker image"
+            inputs:
+              targetType: "inline"
+              script: |
+                set -euo pipefail
+                docker pull "$(IMAGE_URI):latest" || true
+                docker build \
+                  --platform linux/amd64 \
+                  --cache-from "$(IMAGE_URI):latest" \
+                  --build-arg BUILD_MODE=staging \
+                  --build-arg VITE_AUTH_API_URL="$(VITE_AUTH_API_URL)" \
+                  --build-arg VITE_NEGOTIATION_API_URL="$(VITE_NEGOTIATION_API_URL)" \
+                  --build-arg VITE_NEGOTIATION_BACKEND_URL_WS="$(VITE_NEGOTIATION_BACKEND_URL_WS)" \
+                  --build-arg VITE_INGESTION_API_URL="$(VITE_INGESTION_API_URL)" \
+                  --build-arg VITE_SUPPORT_INGESTION_API_URL="$(VITE_SUPPORT_INGESTION_API_URL)" \
+                  --build-arg VITE_SUPPORT_API_URL="$(VITE_SUPPORT_API_URL)" \
+                  --build-arg VITE_SUPPORT_API_URL_WS="$(VITE_SUPPORT_API_URL_WS)" \
+                  -t "$(IMAGE_URI):$(Build.BuildId)" \
+                  -t "$(IMAGE_URI):latest" \
+                  .
+
+          - task: Bash@3
+            displayName: "Push to Artifact Registry"
+            inputs:
+              targetType: "inline"
+              script: |
+                set -euo pipefail
+                gcloud auth print-access-token \
+                  | docker login -u oauth2accesstoken --password-stdin \
+                    "$(GCP_REGION)-docker.pkg.dev"
+                docker push "$(IMAGE_URI):$(Build.BuildId)"
+                docker push "$(IMAGE_URI):latest"
+
+          - task: Bash@3
+            displayName: "Clean up SA key"
+            condition: always()
+            inputs:
+              targetType: "inline"
+              script: rm -f /tmp/sa-key.json
+
+  # ─────────────────────────────────────────────
+  # STAGE 3 — Deploy to Staging
+  # ─────────────────────────────────────────────
+  - stage: DeployStaging
+    displayName: "Deploy to Staging"
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    variables:
+      - group: calculum-ui-staging
+    jobs:
+      - deployment: DeployStaging
+        displayName: "Cloud Run deploy → staging"
+        pool:
+          name: "self-hosted-mac"
+        environment: "production"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: Bash@3
+                  displayName: "Authenticate to GCP"
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      echo "$(GCP_SA_KEY)" > /tmp/sa-key.json
+                      gcloud auth activate-service-account --key-file=/tmp/sa-key.json
+                      gcloud config set project $(GCP_PROJECT_ID)
+                  env:
+                    GCP_SA_KEY: $(GCP_SA_KEY)
+
+                - task: Bash@3
+                  displayName: "Deploy to Cloud Run"
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      gcloud run deploy $(CLOUD_RUN_SERVICE) \
+                        --image "$(IMAGE_URI):$(Build.BuildId)" \
+                        --region $(GCP_REGION) \
+                        --platform managed \
+                        --allow-unauthenticated \
+                        --port 8080 \
+                        --memory 256Mi \
+                        --cpu 1 \
+                        --min-instances 0 \
+                        --max-instances 5 \
+                        --timeout 30 \
+                        --concurrency 1000
+
+                - task: Bash@3
+                  displayName: "Print staging URL"
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      URL=$(gcloud run services describe $(CLOUD_RUN_SERVICE) \
+                        --region $(GCP_REGION) \
+                        --project $(GCP_PROJECT_ID) \
+                        --format 'value(status.url)')
+                      echo "##vso[task.setvariable variable=STAGING_URL]$URL"
+                      echo "Staging deployed to: $URL"
+
+                - task: Bash@3
+                  displayName: "Clean up SA key"
+                  condition: always()
+                  inputs:
+                    targetType: "inline"
+                    script: rm -f /tmp/sa-key.json

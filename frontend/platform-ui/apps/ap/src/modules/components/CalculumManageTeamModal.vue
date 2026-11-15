@@ -1,0 +1,40 @@
+<template>
+<CalculumModal @close="$emit('close')" :size="'sm'" :showClose="true" :title="$t('home.analyze.manageTeam.title')">
+  <template v-slot:modalContent>
+    <p>{{ $t('home.analyze.manageTeam.remove') }}</p>
+  </template>
+  <template v-slot:modalButtons>
+    <button class="btn outline-secondary-btn font-md" @click="userClickedCancel" style="z-index: 1; width: fit-content"> <span>{{$t('global.cancel')}}</span></button>
+    <button class="btn btn-primary font-md" @click="userClickedYes" style="z-index: 1; width: fit-content"> <span>{{$t('global.continue')}}</span></button>
+  </template>
+</CalculumModal>
+</template>
+
+<script lang="ts">
+import { defineComponent } from 'vue'
+import { fontIcons } from '@/resources/assets/assets'
+import CalculumModal from '@/modules/components/CalculumModal.vue'
+
+export default defineComponent({
+  name: 'CalculumManageTeamModal',
+  components: { CalculumModal, },
+  emits: ['close', 'approve'],
+  setup(props, { emit }) {
+    function userClickedClose() {
+      emit('close')
+    }
+    function userClickedCancel() {
+      emit('close')
+    }
+    function userClickedYes() {
+      emit('approve')
+    }    
+    return {
+      fontIcons,      
+      userClickedClose,
+      userClickedCancel,
+      userClickedYes
+    }
+  }
+})
+</script>

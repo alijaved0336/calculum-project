@@ -1,0 +1,335 @@
+# Deploy Pipeline for Front-End AR (Account Receivable)
+# Runs automatically on commits/merges to master, staging, or production branches
+# - master → DEV environment
+# - staging → PRE environment
+# - production → PRO environment
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    - staging
+    # production removed - PRO deploys are manual only
+
+pr: none
+
+name: ar.$(Build.SourceBranchName).$(Rev:r)
+
+pool:
+  name: Ubuntu-Aws
+
+variables:
+- group: Shared-Global-Vars
+- group: 'deploySecurityAWS - Azure'
+
+- ${{ if eq(variables['Build.SourceBranchName'], 'production') }}:
+  - group: Deployment-Pro
+- ${{ elseif eq(variables['Build.SourceBranchName'], 'staging') }}:
+  - group: Deployment-Pre
+- ${{ else }}:
+  - group: Deployment-Dev
+
+- name: ENVIRONMENT
+  ${{ if eq(variables['Build.SourceBranchName'], 'production') }}:
+    value: 'PRO'
+  ${{ elseif eq(variables['Build.SourceBranchName'], 'staging') }}:
+    value: 'PRE'
+  ${{ else }}:
+    value: 'DEV'
+
+# AR_ALLOW_BYPASS_BUILD is gone (UC-ENT-18). It waived a guard in apps/ar/vite.config.ts that
+# refused production-mode builds while VITE_BYPASS_AUTH was set; both the guard and the flag's
+# last declaration are deleted, so there is nothing left to waive. The DEV .env.local in S3 may
+# still carry the line — it is inert, since nothing reads it and no build inspects it. G-60.
+
+stages:
+#==============================================================================
+# STAGE 1: Build and Test
+#==============================================================================
+- stage: Build_Test
+  displayName: 'Build and Test (AR)'
+  jobs:
+  - job: Build_Test_Job
+    displayName: 'Build and Test Job'
+    steps:
+    - checkout: self
+      fetchDepth: 0
+      displayName: 'Checkout repository (full history)'
+
+    # Step 1: Copy environment files from S3
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Step 1: Copy environment files from S3"
+        echo "========================================="
+        echo "Environment: $(ENVIRONMENT)"
+
+        aws s3 cp s3://s3sync-calculum/$(ENV_PATH)/front-end/ar/.env.local apps/ar/.env.local
+        echo "✓ .env.local copied from $(ENV_PATH)"
+
+        # The Kendo licence key, and it goes to the REPO ROOT rather than to apps/ar (G-304).
+        # kendo-licensing searches upward from the directory it runs in, so one copy at the root
+        # serves both the root postinstall and apps/ar's, while a copy inside apps/ar would not be
+        # found by anything run from the root. This has to land BEFORE pnpm install: activation
+        # happens in a postinstall hook and rewrites node_modules/@progress/kendo-licensing, which
+        # is what the bundle embeds.
+        if ! aws s3 cp s3://s3sync-calculum/$(ENV_PATH)/front-end/ar/kendo-ui-license.txt kendo-ui-license.txt; then
+          echo "##vso[task.logissue type=error]No kendo-ui-license.txt at s3://s3sync-calculum/$(ENV_PATH)/front-end/ar/. Without it the build produces an UNLICENSED bundle and every user sees a Kendo licence banner across the top of the app. Upload the current key to that path; it must be valid for products published after 2026-07-20, because packages/design-system pins @progress/kendo-vue-grid@9.1.0."
+          exit 1
+        fi
+        if [ ! -s kendo-ui-license.txt ]; then
+          echo "##vso[task.logissue type=error]kendo-ui-license.txt copied from $(ENV_PATH) is empty."
+          exit 1
+        fi
+        echo "✓ kendo-ui-license.txt copied to repo root from $(ENV_PATH)"
+
+        echo "========================================="
+      displayName: 'Copy files from S3'
+      retryCountOnTaskFailure: 1
+      failOnStderr: false
+
+    # Step 2: Install dependencies and build application
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Step 2: Build Application (AR)"
+        echo "========================================="
+        echo "Node version: $(node -v)"
+        echo "pnpm version: $(pnpm -v 2>/dev/null || echo 'not installed')"
+
+        echo "Installing pnpm..."
+        export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+        npm install -g pnpm@9 --quiet
+        echo "##vso[task.prependpath]$HOME/.npm-global/bin"
+        export PATH="$HOME/.npm-global/bin:$PATH"
+        echo "✓ pnpm installed: $(pnpm -v)"
+
+        echo "Cleaning workspace..."
+        pnpm store prune --force 2>/dev/null || true
+        rm -rf node_modules apps/ar/node_modules packages/*/node_modules
+
+        PKG_VERSION=$(node -p "require('./apps/ar/package.json').version")
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        RELEASE_VERSION="${PKG_VERSION}+${SHORT_SHA}"
+        echo "Release: ${RELEASE_VERSION}"
+        echo "##vso[task.setvariable variable=RELEASE_VERSION;isOutput=true]${RELEASE_VERSION}"
+
+        echo "Running pnpm install..."
+        pnpm install --frozen-lockfile
+        echo "✓ pnpm install completed"
+
+        # Prove the licence actually activated, rather than trusting that it did (G-304).
+        #
+        # Both postinstall hooks pass --ignore-no-license, which exits 0 when it finds no key at
+        # all: that is why an unlicensed bundle used to ship and announce itself to the user with a
+        # banner instead of failing here. This runs the activation WITHOUT that flag, so a missing
+        # or unusable key exits 1 (TKL002) and the deploy stops before anything reaches S3.
+        #
+        # It runs from apps/ar and not from the root on purpose: at the root the CLI reports "No
+        # Telerik or Kendo UI product references detected in project" and exits 0 regardless, since
+        # the Kendo packages are declared in apps/*, not at the root.
+        #
+        # It also has to run AFTER install: pnpm install wipes and rewrites node_modules, and
+        # activation is what writes the licence into @progress/kendo-licensing for the bundler to
+        # embed. The line it prints names the licence holder and expiry, which is the only place
+        # either is visible.
+        echo "Verifying the Kendo licence activated..."
+        ( cd apps/ar && npx kendo-ui-license activate )
+        echo "✓ Kendo licence activated"
+
+        echo "Running turbo build for AR..."
+        export SENTRY_AUTH_TOKEN=$(SENTRY_TOKEN)
+        npx turbo run build --filter=@ada/ar
+        echo "✓ Build completed"
+
+        echo "========================================="
+      name: BuildStep
+      displayName: 'Install and Build'
+      retryCountOnTaskFailure: 1
+      failOnStderr: false
+
+    # Step 3: Execute tests with coverage
+    - script: |
+        set -e
+        echo "========================================="
+        echo "Step 3: Execute Tests (AR)"
+        echo "========================================="
+
+        npx turbo run test --filter=@ada/ar -- --coverage
+        echo "✓ Tests completed"
+
+        echo "========================================="
+      workingDirectory: '$(Build.SourcesDirectory)'
+      displayName: 'Execute Tests'
+      failOnStderr: false
+      continueOnError: true
+
+    # Step 4: Publish test results
+    - task: PublishTestResults@2
+      displayName: 'Publish Test Results'
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: 'apps/ar/test-results/junit.xml'
+        failTaskOnFailedTests: false
+
+    # Step 5: Publish code coverage results
+    - task: PublishCodeCoverageResults@2
+      displayName: 'Publish Code Coverage Results'
+      condition: succeededOrFailed()
+      inputs:
+        summaryFileLocation: '$(System.DefaultWorkingDirectory)/apps/ar/test-results/coverage/cobertura-coverage.xml'
+        pathToSources: '$(System.DefaultWorkingDirectory)/apps/ar/src'
+
+    # Step 6: Publish build artifacts
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Build Artifacts'
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/apps/ar/dist'
+        artifact: 'dist-ar'
+        publishLocation: 'pipeline'
+
+#==============================================================================
+# STAGE 2: SonarQube Code Analysis
+#==============================================================================
+- stage: Sonar
+  displayName: 'SonarQube Code Analysis (AR)'
+  dependsOn: Build_Test
+  condition: and(succeeded(), eq(lower(variables['SONAR_EXECUTE']), 'true'))
+  jobs:
+  - job: Code_Analysis
+    displayName: 'Run SonarQube Analysis'
+    pool:
+      name: Ubuntu-Aws
+      demands: java
+    steps:
+    - script: |
+        set -e
+        export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+        npm install -g pnpm@9 --quiet
+        echo "##vso[task.prependpath]$HOME/.npm-global/bin"
+        export PATH="$HOME/.npm-global/bin:$PATH"
+        aws s3 cp s3://s3sync-calculum/$(ENV_PATH)/front-end/ar/.env.local apps/ar/.env.local
+        echo "✓ .env.local copied"
+      displayName: 'Copy .env.local from S3'
+      retryCountOnTaskFailure: 1
+      failOnStderr: false
+
+    - task: SonarQubePrepare@7
+      displayName: 'Prepare analysis on SonarQube Server'
+      inputs:
+        SonarQube: SonarQube
+        scannerMode: cli
+        configMode: file
+        configFile: 'apps/ar/sonar-project.properties'
+        extraProperties: |
+          sonar.projectBaseDir=$(Build.SourcesDirectory)/apps/ar
+
+    - script: |
+        set -e
+        pnpm install --frozen-lockfile
+        echo "✓ pnpm install completed"
+      displayName: 'Install Dependencies'
+      retryCountOnTaskFailure: 1
+
+    - script: |
+        set -e
+        npx turbo run test --filter=@ada/ar -- --coverage
+        echo "✓ Tests completed"
+      displayName: 'Execute Tests with Coverage'
+      continueOnError: true
+
+    - script: |
+        set -e
+        LCOV="apps/ar/test-results/coverage/lcov.info"
+        if [ ! -s "$LCOV" ]; then
+          echo "##vso[task.logissue type=error]lcov.info is missing or empty at $LCOV"
+          exit 1
+        fi
+        BEFORE=$(grep -c '^SF:.*\.vue?' "$LCOV" || true)
+        if [ "$BEFORE" -gt 0 ]; then
+          sed -i -E 's|^(SF:.*\.vue)\?[^[:space:]]*|\1|' "$LCOV"
+        fi
+      displayName: 'Validate & Normalize Coverage Report'
+
+    - task: SonarQubeAnalyze@7
+      displayName: 'Run Code Analysis'
+
+    - task: SonarQubePublish@7
+      displayName: 'Publish Quality Gate Result'
+      inputs:
+        checkQualityGate: true
+
+    - script: |
+        echo "Cleaning build directory: $(Build.SourcesDirectory)"
+        sudo rm -rf "$(Build.SourcesDirectory)"/*
+      workingDirectory: /home/ubuntu
+      displayName: 'Clean Directory'
+      condition: always()
+      continueOnError: true
+
+#==============================================================================
+# STAGE 3: Deploy to S3
+#==============================================================================
+- stage: Deploy
+  displayName: 'Deploy AR to S3'
+  dependsOn: Build_Test
+  variables:
+    RELEASE_VERSION: $[ stageDependencies.Build_Test.Build_Test_Job.outputs['BuildStep.RELEASE_VERSION'] ]
+  jobs:
+  - deployment: Deploy_To_S3
+    displayName: 'Deploy AR to S3'
+    ${{ if eq(variables['Build.SourceBranchName'], 'production') }}:
+      environment: Prod
+    ${{ elseif eq(variables['Build.SourceBranchName'], 'staging') }}:
+      environment: Pre
+    ${{ else }}:
+      environment: Dev
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: none
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Build Artifacts'
+            inputs:
+              artifact: 'dist-ar'
+              path: '$(Pipeline.Workspace)/dist-ar'
+
+          - script: |
+              set -e
+              echo "Environment: $(ENVIRONMENT)"
+              echo "Target bucket: s3://$(AWS_S3_BUCKET_ARR)"
+              aws s3 rm --recursive s3://$(AWS_S3_BUCKET_ARR)
+              aws s3 sync $(Pipeline.Workspace)/dist-ar s3://$(AWS_S3_BUCKET_ARR)/dist
+              echo "✓ Files uploaded to S3"
+            displayName: 'Copy Files to S3'
+            retryCountOnTaskFailure: 1
+            failOnStderr: false
+
+          - script: |
+              set -e
+              aws cloudfront create-invalidation --distribution-id $(AWS_CLOUDFRONT_ID_ARR) --paths '/*'
+              echo "✓ CloudFront invalidation created"
+            displayName: 'Invalidate CloudFront'
+            retryCountOnTaskFailure: 1
+            failOnStderr: false
+
+          - script: |
+              set -e
+              if [ -z "${RELEASE_VERSION}" ]; then
+                echo "##vso[task.logissue type=error]RELEASE_VERSION is empty"
+                exit 1
+              fi
+              if ! command -v sentry-cli &> /dev/null; then
+                curl -sL https://sentry.io/get-cli/ | bash
+              fi
+              export SENTRY_ORG=calculum
+              export SENTRY_PROJECT=ada-vue
+              sentry-cli releases deploys "${RELEASE_VERSION}" new -e "$(ENVIRONMENT)"
+              echo "✓ Deploy marker recorded"
+            displayName: 'Sentry Deploy Marker'
+            condition: succeeded()
+            continueOnError: true
+            env:
+              SENTRY_AUTH_TOKEN: $(SENTRY_TOKEN)

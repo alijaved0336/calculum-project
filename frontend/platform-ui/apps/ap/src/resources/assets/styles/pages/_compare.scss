@@ -1,0 +1,85 @@
+/*!
+ * Page Compare
+ */
+.resume {
+	&-container {
+		background-color: $shadow;
+		border: $border-light;
+		margin-left: $margin;
+		margin-right: $margin;
+		padding: $margin;
+	}
+	&-block {
+		display: inline-flex;
+		justify-content: center;
+		width: 100%;
+	}
+	&-values {
+			margin-left: $margin__bootstrap;
+			margin-right: $margin__bootstrap;
+			width: $margin*4;
+			height: $margin*3;
+			text-align: center;
+			font-weight: 600;
+			border: $border-link__hover;
+			background-color: $color-white;
+
+			&.red {
+				border-color: $color-red;
+			}
+			&.blue {
+				border-color: $color-blue;
+			}
+			&.orange {
+				border-color: $color-orange;
+			}
+			&.yellow {
+				border-color: $color-yellow;
+			}
+			&.green {
+				border-color: $color-green;
+			}
+			&.gray {
+				border-color: $color-gray-500;
+			}
+			&.black {
+				border-color: $color-black;
+			}
+		&__top {
+			@include isFlex(center);
+			color: $color-white;
+			height: $margin*2 - 5;
+			p {
+				margin: 0;
+			}
+			&.red {
+				background-color: $color-red;
+			}
+			&.blue {
+				background-color: $color-blue;
+			}
+			&.orange {
+				background-color: $color-orange;
+			}
+			&.yellow {
+				background-color: $color-yellow;
+			}
+			&.green {
+				background-color: $color-green;
+			}
+			&.gray {
+				background-color: $color-gray-500;
+				color: $color-black;
+			}
+			&.black {
+				background-color: $color-black;
+			}
+		}
+		&__bottom {
+			p {
+				margin-top: 2px;
+				margin-bottom: 0;
+			}
+		}
+	}
+}

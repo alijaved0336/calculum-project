@@ -1,0 +1,41 @@
+/*** Fill ***/
+
+.fill-current {
+  fill: currentColor;
+}
+
+.notes-container-svg {
+  cursor: pointer;
+}
+
+.notes-btn-container {
+  
+  cursor: pointer;
+  &:hover{
+    .notes-svg {
+      fill: $color-primary-600;
+    }
+  }
+}
+
+.notes-svg {
+  cursor: pointer;
+  
+  &.default {
+    fill: $color-gray-500;
+  }
+
+  &.potential{
+    fill: #fff;
+  }
+  
+}
+
+
+// ? - Define w and h util classes
+.check-svg-small{
+  width: 16px;
+  height: 16px; 
+}
+
+/*** END Fill ***/

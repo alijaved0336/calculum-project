@@ -1,0 +1,33 @@
+# DEPRECATED — do not add packages here.
+# Dependencies are managed via pyproject.toml + uv.lock.
+#
+# To install:       uv sync
+# To add a package: uv add <package>
+# To add dev dep:   uv add --dev <package>
+# To upgrade all:   uv lock --upgrade && uv sync
+fastapi==0.111.0
+uvicorn==0.30.1
+pydantic==2.7.4
+pydantic-settings>=2.4.0
+psutil==5.9.8
+qdrant-client==1.9.1
+sentence-transformers==3.0.1
+rank-bm25==0.2.2
+pypdf==4.2.0
+weasyprint>=68.0
+google-cloud-storage>=3.1.0
+python-docx==1.1.2
+python-dotenv==1.0.1
+httpx>=0.27.0,<0.28.0
+pytest==8.2.2
+pytest-asyncio==0.23.7
+
+# Postgres + migrations
+alembic>=1.13.0
+sqlalchemy[asyncio]>=2.0.30
+asyncpg>=0.29.0
+
+# LangGraph + streaming
+langgraph==0.2.45
+langchain==0.3.7
+langchain-ollama==0.2.1

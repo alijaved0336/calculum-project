@@ -1,0 +1,24 @@
+export const nodesEdges = `
+  entityType
+  entityUuid  
+  entityMediaPath
+  parentUuid
+  parentLogoPath
+  entityCreditScore
+  entityFlagUrl
+  buyerFlagUrl
+  spendAlias
+  uuid
+  harmonizations
+  harmColors
+  hasDynamic
+  harmonizationLevels
+  financings
+  financingColors
+  negotiationStatusCodes
+  configUuid
+  vCardGroupName
+  isVCardApplied
+  vCardColor
+  isPilot\n
+`;

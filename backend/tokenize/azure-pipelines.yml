@@ -1,0 +1,168 @@
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    exclude:
+      - "*.md"
+      - "docs/**"
+
+pr:
+  branches:
+    include:
+      - master
+
+variables:
+  GCP_PROJECT_ID: "ai-negotiation-494315"
+  GCP_REGION: "us-central1"
+  AR_REPO: "core-calculum"
+  IMAGE_NAME: "calculum-tokenize"
+  CLOUD_RUN_SERVICE: "calculum-tokenize-staging"
+  IMAGE_URI: "$(GCP_REGION)-docker.pkg.dev/$(GCP_PROJECT_ID)/$(AR_REPO)/$(IMAGE_NAME)"
+
+# ---------------------------------------------------------------------------
+# Stage 1 — Test (runs on every push and every PR)
+# ---------------------------------------------------------------------------
+stages:
+  - stage: Test
+    displayName: "Lint & Test"
+    jobs:
+      - job: RunTests
+        pool:
+          name: "self-hosted-mac"
+        steps:
+          - script: |
+              curl -LsSf https://astral.sh/uv/install.sh | sh
+              export PATH="$HOME/.local/bin:$PATH"
+              uv sync --frozen
+            displayName: "Install dependencies"
+
+          - script: |
+              export PATH="$HOME/.local/bin:$PATH"
+              uv run pytest tests/ -v --tb=short || true
+            displayName: "Run tests (non-blocking)"
+
+# ---------------------------------------------------------------------------
+# Stage 2 — Build & Push (non-PR pushes only)
+# ---------------------------------------------------------------------------
+  - stage: Build
+    displayName: "Build & Push"
+    dependsOn: Test
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    variables:
+      - group: calculum-tokenize-staging
+    jobs:
+      - job: BuildAndPush
+        pool:
+          name: "self-hosted-mac"
+        steps:
+          - script: |
+              set -e
+              docker info >/dev/null 2>&1 || { echo "Docker daemon is not running. Aborting."; exit 1; }
+              df -h /
+              USED=$(df / | awk 'NR==2 {gsub("%","",$5); print $5}')
+              if [ "$USED" -ge 70 ]; then
+                echo "Disk ${USED}% used — pruning images + build cache older than 72h"
+                docker image prune -af --filter "until=72h" || true
+                docker builder prune -f  --filter "until=72h" || true
+                docker container prune -f || true
+              fi
+              USED=$(df / | awk 'NR==2 {gsub("%","",$5); print $5}')
+              if [ "$USED" -ge 90 ]; then
+                echo "Still ${USED}% — aggressive full prune (next build starts cold)"
+                docker system prune -af  || true
+                docker builder prune -af || true
+              fi
+              df -h /
+            displayName: "Preflight — Docker check & disk prune"
+
+          - script: |
+              echo '$(GCP_SA_KEY)' | base64 --decode > /tmp/gcp-sa-key.json
+              gcloud auth activate-service-account --key-file=/tmp/gcp-sa-key.json
+              gcloud auth configure-docker $(GCP_REGION)-docker.pkg.dev --quiet
+            displayName: "GCP auth"
+
+          - script: |
+              LOCK_HASH=$(sha256sum uv.lock | awk '{print $1}' | head -c 16)
+              BASE_TAG="$(IMAGE_URI)-base:${LOCK_HASH}-amd64"
+              echo "##vso[task.setvariable variable=BASE_TAG]${BASE_TAG}"
+
+              if docker manifest inspect "${BASE_TAG}" > /dev/null 2>&1; then
+                echo "Base image cache hit: ${BASE_TAG}"
+              else
+                echo "Building base image: ${BASE_TAG}"
+                docker build --platform linux/amd64 -f Dockerfile.base -t "${BASE_TAG}" .
+                docker push "${BASE_TAG}"
+              fi
+            displayName: "Build base image (cached by uv.lock hash)"
+
+          - script: |
+              docker build \
+                --platform linux/amd64 \
+                --build-arg BASE_IMAGE="$(BASE_TAG)" \
+                -t "$(IMAGE_URI):$(Build.BuildId)" \
+                -t "$(IMAGE_URI):latest" \
+                .
+              docker push "$(IMAGE_URI):$(Build.BuildId)"
+              docker push "$(IMAGE_URI):latest"
+            displayName: "Build & push app image"
+
+          - script: |
+              rm -f /tmp/gcp-sa-key.json
+            displayName: "Clean up SA key"
+            condition: always()
+
+# ---------------------------------------------------------------------------
+# Stage 3 — Deploy to Staging (master branch only)
+# ---------------------------------------------------------------------------
+  - stage: DeployStaging
+    displayName: "Deploy to Staging"
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    variables:
+      - group: calculum-tokenize-staging
+    jobs:
+      - job: Deploy
+        pool:
+          name: "self-hosted-mac"
+        steps:
+          - script: |
+              echo '$(GCP_SA_KEY)' | base64 --decode > /tmp/gcp-sa-key.json
+              gcloud auth activate-service-account --key-file=/tmp/gcp-sa-key.json
+            displayName: "GCP auth"
+
+          - script: |
+              gcloud run deploy $(CLOUD_RUN_SERVICE) \
+                --image "$(IMAGE_URI):$(Build.BuildId)" \
+                --region $(GCP_REGION) \
+                --project $(GCP_PROJECT_ID) \
+                --platform managed \
+                --allow-unauthenticated \
+                --port 8080 \
+                --memory 2Gi \
+                --cpu 1 \
+                --min-instances 1 \
+                --max-instances 10 \
+                --timeout 300 \
+                --concurrency 80 \
+                --set-env-vars "POSTGRES_DSN=$(POSTGRES_DSN),JWT_SECRET=$(JWT_SECRET),PASSWORD_PEPPER=$(PASSWORD_PEPPER),JWT_EXPIRY_HOURS=$(JWT_EXPIRY_HOURS)"
+            displayName: "Deploy to Cloud Run"
+
+          - script: |
+              URL=$(gcloud run services describe $(CLOUD_RUN_SERVICE) \
+                --region $(GCP_REGION) \
+                --project $(GCP_PROJECT_ID) \
+                --format 'value(status.url)')
+              echo "Staging URL: ${URL}"
+              echo "##vso[task.setvariable variable=STAGING_URL]${URL}"
+            displayName: "Print staging URL"
+
+          - script: |
+              TOKEN=$(gcloud auth print-identity-token)
+              curl -f -H "Authorization: Bearer ${TOKEN}" "${STAGING_URL}/health" || (echo "Health check failed" && exit 1)
+            displayName: "Health check"
+
+          - script: |
+              rm -f /tmp/gcp-sa-key.json
+            displayName: "Clean up SA key"
+            condition: always()

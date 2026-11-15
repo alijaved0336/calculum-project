@@ -1,0 +1,190 @@
+/* CustomDialog overrides — requires kendo-theme.scss loaded once by the host. */
+
+.ds-custom-dialog {
+  position: relative;
+  font-family: var(--font-family-base);
+  color: var(--color-text-1);
+  border-radius: var(--border-radius-default);
+  overflow: hidden;
+
+  .k-window-titlebar,
+  .k-dialog-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: auto;
+    padding: 1rem 2.75rem 0.75rem 1.25rem;
+    border-color: transparent;
+    background: var(--bg-surface);
+    color: var(--color-text-1);
+  }
+
+  .k-window-title,
+  .k-dialog-title {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Kendo close slot unused — we render close as a window overlay. */
+  .k-window-titlebar-actions,
+  .k-dialog-titlebar-actions {
+    display: none;
+  }
+
+  .ds-custom-dialog__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    box-sizing: border-box;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    padding: 0;
+    pointer-events: auto;
+  }
+
+  .k-window-content,
+  .k-dialog-content {
+    padding: 0.75rem 1.25rem 1rem;
+    background: var(--bg-surface);
+    color: var(--color-text-1);
+    border-color: transparent;
+  }
+
+  .k-actions,
+  .k-dialog-actions {
+    padding: 0.75rem 1.25rem 1.25rem;
+    border-color: transparent;
+    background: var(--bg-surface);
+    gap: 0.5rem;
+  }
+}
+
+.ds-custom-dialog__body {
+  padding: 0;
+}
+
+.ds-custom-dialog--logo {
+  .k-window-titlebar,
+  .k-dialog-titlebar {
+    display: none;
+  }
+
+  .k-window-content,
+  .k-dialog-content {
+    padding: 2rem 2rem 0;
+  }
+
+  .ds-custom-dialog__body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0;
+    text-align: center;
+  }
+
+  .ds-custom-dialog__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--accent);
+
+    svg {
+      display: block;
+      width: 40px;
+      height: 40px;
+    }
+  }
+
+  .ds-custom-dialog__content-title {
+    margin: 0;
+    max-width: 100%;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    color: var(--color-text-1);
+  }
+
+  .k-actions,
+  .k-dialog-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1.75rem 2rem 2rem;
+
+    .custom-button {
+      width: 100%;
+    }
+  }
+}
+
+/* CustomDialog's `stackedActions` prop: actions stacked full-width, primary first. */
+.ds-custom-dialog--stacked-actions {
+  .k-actions,
+  .k-dialog-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+
+    .custom-button {
+      width: 100%;
+    }
+  }
+}
+
+.k-dialog-wrapper {
+  /* Ensure Esc / focus land on a focusable surface */
+  outline: none;
+}
+
+/* Icon-header variant (CustomDialog's `icon` prop): the native title bar is hidden, replaced by
+   a left-aligned icon badge + title row rendered at the top of the body - unlike `--logo`, this
+   stays left-aligned and does not force stacked/centered content or actions. */
+.ds-custom-dialog--icon-header {
+  .k-window-titlebar,
+  .k-dialog-titlebar {
+    display: none;
+  }
+
+  .k-window-content,
+  .k-dialog-content {
+    padding: 1.5rem 1.5rem 1rem;
+  }
+}
+
+.ds-custom-dialog__icon-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.ds-custom-dialog__icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-2);
+  background: var(--brand-50);
+  color: var(--accent);
+
+  svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.ds-custom-dialog__icon-header-title {
+  margin: 0;
+  padding-top: 0.5rem;
+  color: var(--color-text-1);
+}

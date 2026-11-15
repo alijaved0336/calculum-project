@@ -1,0 +1,3 @@
+// Re-exports the shared design-system palette so existing
+// `@import "src/resources/assets/styles/variables/colors"` call sites keep working.
+@import "variables/colors";

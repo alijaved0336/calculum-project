@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.git/
+.env
+# Service-account keys must never be baked into the image (provided via Secret Manager at runtime)
+*-key.json
+calculum-storage-sa-key.json
+tests/
+*.md

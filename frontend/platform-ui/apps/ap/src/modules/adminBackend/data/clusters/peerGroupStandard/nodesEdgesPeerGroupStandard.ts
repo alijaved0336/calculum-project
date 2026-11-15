@@ -1,0 +1,23 @@
+export const nodesEdgesPeerGroupStandard = `
+  uuid
+  clusterVersion
+  clusterId
+  similarityRateText
+  supplierCountryCode
+  supplierRegion
+  buyerLeverage
+  buyerCountryCode
+  buyerRegion
+  naicsCode
+  firstQuartile
+  median
+  thirdQuartile
+  ninety
+  occurrences
+  average
+  min
+  max
+  clusterInfo
+  companiesCount
+  companies
+`;

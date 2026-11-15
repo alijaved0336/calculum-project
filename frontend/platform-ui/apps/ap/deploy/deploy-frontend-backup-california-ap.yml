@@ -1,0 +1,102 @@
+# Deploy Front-End - Calculum PRO backup/DR (California, us-west-1)
+# Migrated from classic Azure DevOps pipeline (definition ID 87) to YAML.
+#
+# The Front-End is a static Vue SPA: it is BUILT on the agent and PUBLISHED to
+# S3 + CloudFront. No EC2 is involved — the classic pipeline only SSHed to a box
+# to use it as a build machine, and still uploaded the result to S3. Bringing the
+# DR EC2 boxes up is a separate concern (a dedicated START pipeline), not this.
+#
+# Pool: Ubuntu-Aws — same pool that builds this app in prod (deploy-frontend.yml),
+# so the Node toolchain is guaranteed. Its agent instance profile already grants
+# s3:PutObject on calculum-pro-app-backup-vue and cloudfront:CreateInvalidation
+# on E3SQIAIZKDQM2L, so no access keys / variable groups are needed.
+#
+# The pipeline DEFINITION lives on master, but the DR must mirror PRODUCTION
+# code. A PR to the `production` branch is deliberately avoided — pushing there
+# would trigger the real prod deploy (deploy-frontend.yml watches production).
+# So the build explicitly checks out `production` after checkout, regardless of
+# which branch the run started from. Mirrors the production-branch checkout in
+# deploy-backend-pro-init.yml.
+
+parameters:
+  # Dry run = build only, publish nothing. Use it for the first run to prove the
+  # build compiles and the pipeline is wired, without touching S3 / CloudFront.
+  - name: dryRun
+    displayName: "Dry run (build only, do not publish)"
+    type: boolean
+    default: false
+
+trigger: none
+pr: none
+
+name: backup-fe-$(Date:yyyyMMdd)$(Rev:.r)
+
+pool:
+  name: Ubuntu-Aws
+
+variables:
+  - name: S3_BACKUP # env.ts + Kendo license source (root of the Backup config)
+    value: s3://s3sync-calculum/Backup
+  - name: APP_BUCKET # where the built SPA is published (CloudFront origin)
+    value: calculum-pro-app-backup-vue
+  - name: CLOUDFRONT_ID # backup distribution
+    value: E3SQIAIZKDQM2L
+
+steps:
+  - checkout: self
+    persistCredentials: true
+    fetchDepth: 0
+    clean: true
+    displayName: "Checkout"
+
+  # Always build `production`, regardless of which branch triggered the run (the
+  # definition lives on master). Mirrors the box-side `git checkout production`
+  # the classic pipeline relied on.
+  - script: |
+      set -e
+      git fetch origin production
+      git checkout -B production origin/production
+      echo "✓ Building from production @ $(git rev-parse --short HEAD):"
+      git log -1 --oneline
+    workingDirectory: "$(Build.SourcesDirectory)"
+    displayName: "Checkout production branch"
+
+  # env.ts (API endpoints the SPA calls) + Kendo license, both from the Backup
+  # config in S3. env.ts is gitignored and must come from S3, not the repo.
+  - script: |
+      set -e
+      aws s3 cp $(S3_BACKUP)/front-end/env.ts src/services/api/env.ts
+      aws s3 cp $(S3_BACKUP)/kendo-ui-license.txt kendo-ui-license.txt
+      echo "✓ env.ts + kendo-ui-license.txt in place"
+    displayName: "Copy env.ts + Kendo license from S3"
+    retryCountOnTaskFailure: 1
+
+  - script: |
+      set -e
+      rm -rf node_modules
+      npm ci
+      # No SENTRY_AUTH_TOKEN on purpose: vue.config.js guards the Sentry webpack
+      # plugin on that var, so the DR build simply skips source-map upload.
+      npm run build
+      echo "✓ build produced dist/"
+    displayName: "npm ci + build"
+    retryCountOnTaskFailure: 1
+
+  # Publish with `sync --delete`: uploads new files and prunes stale hashed
+  # chunks in one pass, so the bucket is never left empty mid-deploy.
+  - script: |
+      set -e
+      echo "Publishing to s3://$(APP_BUCKET)/dist ..."
+      aws s3 sync dist "s3://$(APP_BUCKET)/dist" --delete
+      echo "✓ dist published"
+    displayName: "Publish dist to S3"
+    retryCountOnTaskFailure: 1
+    condition: and(succeeded(), not(${{ parameters.dryRun }}))
+
+  - script: |
+      set -e
+      aws cloudfront create-invalidation --distribution-id $(CLOUDFRONT_ID) --paths '/*'
+      echo "✓ CloudFront invalidation created"
+    displayName: "Invalidate CloudFront"
+    retryCountOnTaskFailure: 1
+    condition: and(succeeded(), not(${{ parameters.dryRun }}))

@@ -1,0 +1,35 @@
+// Host-owned page scale — not design-system. Keep zoom out of DS `_inter.scss`.
+html {
+  zoom: 0.67;
+}
+
+// Host compensation for this file’s html zoom. Do not put this pair in DS kendo-grid.scss
+// (Storybook loads that sheet at zoom 1 and the pair would shift Tooltip/Popup).
+.k-animation-container {
+  zoom: 1.4925;
+
+  // DS kendo-grid.scss already tries to keep Kendo's own popups/tooltips above a CalculumModal
+  // (`.k-animation-container { z-index: 1070 }`, see calculumModalStack.ts's own doc for why 1070),
+  // but Kendo's OWN base theme CSS carries an equal-specificity `.k-animation-container { z-index:
+  // 100 }` rule that loads AFTER it - same specificity, later source order, so Kendo's 100 silently
+  // wins the cascade and every Kendo tooltip/popup (TooltipButton included) renders BEHIND any open
+  // CalculumModal (z-index >= 1050) instead of on top of it. `!important` here - not raising DS's
+  // own rule to `!important`, which every OTHER app importing kendo-grid.scss would then inherit
+  // whether or not it has anything like CalculumModal's z-index range - forces AR's own resolution
+  // of this specific conflict without touching the shared design-system file.
+  // 10003, not 1070: it must also clear Kendo's own Dialog (CustomDialog, z-index 10002), or a
+  // dropdown opened inside one (Client Standard's "Condition Settings") lists its options behind it.
+  z-index: 10003 !important;
+
+  > * {
+    zoom: 0.67;
+  }
+}
+
+// Host compensation for DS CustomTabs' underline indicator. It is sized from
+// getBoundingClientRect(), which already reports this html zoom, so writing that value back as
+// the indicator's CSS width/translate would apply the zoom twice. Cancelling the zoom on the
+// indicator alone lets it render those (already visual) pixels 1:1 - the tabs themselves stay zoomed.
+.ds-tabs__indicator {
+  zoom: 1.4925;
+}

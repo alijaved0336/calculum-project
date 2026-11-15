@@ -1,0 +1,87 @@
+  .custom-title-9box-table {
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: #667085;
+    text-align: center;
+
+  
+    @media screen and (min-width: 1920px) { 
+      font-size: .8125rem;
+    }
+  
+    @media screen and (min-width: 1920px) { 
+      font-size: .8125rem;
+    }
+  
+    @media screen and (max-width: 1920px) { 
+      font-size: .8125rem;
+    }
+  }
+  
+  #percent-9box {
+    font-weight: 800;
+  }
+  
+
+  .th-table-9box-text {
+    // max-width: 45%;    
+    font-size: 16px;      
+    font-weight: 400;   
+    
+    // span {
+    //   width: 90%;
+    //   background-color: #000000;
+    //   text-overflow: ellipsis;
+    //     overflow: hidden;
+    //     white-space: nowrap;
+    // }
+    // display: block;
+    // text-overflow: ellipsis;
+    // overflow: hidden;
+    // white-space: nowrap;
+    @media screen and (max-width: 1440px){
+      font-size: 14px;  
+    }
+
+    @media screen and (max-width: 1280px){
+      font-size: 14px;  
+    }
+
+  }
+
+  // Cells with headers
+  .th-table-9box {
+   
+    font-weight: 400;
+    font-size: 16px;  
+    padding: 8px 16px !important;   
+    // width: 16.5%;
+    text-align: right;
+   
+    @media screen and (max-width: 1440px){
+      font-size: 14px;  
+    }
+
+    @media screen and (max-width: 1280px){
+      font-size: 14px;  
+    }
+
+
+  }
+  
+  .bg-color-gray-50-9box-table {
+    background: $color-gray-50;
+  }
+  
+  #border-radius-8-9box-table {
+    border-top-right-radius: 8px;
+    border-top-left-radius: 8px;
+  }
+  
+  
+  .table-body-9box tr:nth-child(even) {
+    background-color: $color-gray-100;
+    /* Replace this with the desired gray color */
+  }
+  

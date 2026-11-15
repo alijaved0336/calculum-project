@@ -1,0 +1,15 @@
+// We use !important here to override the default Bootstrap styles.
+// Taken from tailwindcss v3.3.3
+
+.cursor-default {
+  cursor: default !important;
+}
+.cursor-pointer {
+  cursor: pointer !important;
+}
+.cursor-progress {
+  cursor: progress !important;
+}
+.cursor-not-allowed {
+  cursor: not-allowed !important;
+}

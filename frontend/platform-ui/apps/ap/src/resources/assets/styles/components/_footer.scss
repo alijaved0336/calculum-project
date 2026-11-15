@@ -1,0 +1,34 @@
+/*!
+ * Components Footer
+ */
+.footer {
+	// position: fixed;
+	// bottom: 0;
+	// right: 0;
+	// width: 320px;
+	// padding: 10px;
+	// border-top-left-radius: 5px;
+	// text-align: center;
+	// padding-bottom: $margin__bootstrap - 5;
+	div {
+		font-size: $font-sm !important;
+		margin-left: $margin__bootstrap*2;
+	}
+	a {
+		font-size: $font-sm;
+		font-weight: bold;
+	}
+	&__logo {
+		bottom: $margin*2;
+	}
+}
+
+.copyright {
+	color: $color-excerpt;
+	font-size: $font-sm;
+}
+
+
+@media screen and (max-width: $grid-width) {
+
+}

@@ -1,0 +1,299 @@
+# ingestion-support-agent → Cloud Run (modeled on the ingestion-calculum pipeline).
+# Stages: Test → Build & Push → Deploy. Secrets + config come from a Library variable group.
+#
+# LIBRARY VARIABLE GROUP  (Pipelines → Library → variable group 'ingestion-support-agent-staging'):
+#   Already present (per your screenshot):
+#     AZURE_PAT, GCP_SA_KEY, GCP_SERVICE_ACCOUNT_JSON, GCP_PROJECT_ID, GCP_STORAGE_BUCKET,
+#     GCP_STORAGE_PREFIX, GCP_TRANSCRIPT_PREFIX, GCP_DOCUMENT_PREFIX, GCP_STORAGE_TIMEOUT_SECONDS,
+#     GCP_TRANSCODER_PUBSUB_TOPIC, COLLECTION_VIDEO_CHUNKS, EMBED_API_URL, EMBED_API_KEY,
+#     EMBED_MODEL, EMBED_DIMS, EMBED_TIMEOUT, EMBED_MAX_TOKENS, EMBED_BATCH_MAX_TOKENS,
+#     EMBED_BATCHING, INGEST_CONCURRENCY, CHUNKING_STRATEGY, INGESTION_CHUNK_SIZE,
+#     INGESTION_CHUNK_OVERLAP, INGESTION_SEMANTIC_BREAKPOINT_PERCENTILE, QDRANT_HOST, QDRANT_PORT,
+#     QDRANT_USE_TLS, POSTGRES_DSN, JWT_SECRET, LLM_BASE_URL, LLM_API_KEY, LLM_MODEL,
+#     LOG_LEVEL, LOG_FORMAT, SCHEDULER_ENABLED, VIDEO_STORAGE
+#   ADD THESE (needed for Transcoder + webhook OIDC):
+#     GCP_TRANSCODER_LOCATION      e.g. us-central1
+#     PUBSUB_AUDIENCE              = the Cloud Run service URL (set after first deploy)
+#     CORS_ALLOWED_ORIGINS         = your frontend origin(s)
+#     VIDEO_COMPRESS_MIN_BYTES     e.g. 52428800   (optional; defaults to 50 MB)
+#     VIDEO_COMPRESS_ENABLED       true | false   (false = skip compression; every video is stored
+#                                                  in videos/ as-is, no Transcoder job)
+#     AZURE_JWT_LEEWAY_HOURS       grace window (hours) accepted past the Ada B2C token's exp claim,
+#                                  on top of AZURE_JWKS_URL/AZURE_B2C_ISSUER/AZURE_B2C_AUDIENCE which
+#                                  are already in this group. Start at 0 (or omit — defaults to 0);
+#                                  the var must exist in the group or it resolves empty and
+#                                  pydantic-settings fails to parse it as an int at boot.
+#   Single bucket: GCP_UPLOAD_BUCKET is NOT set — the app falls back to GCP_STORAGE_BUCKET, so
+#     originals land in uploads/ inside calculum-support-agent-videos (compressed → videos/).
+#   UPLOADED_BY is NOT set — the uploader is taken from the admin JWT (sub) at the code level.
+#   Mark every credential/DSN/key as SECRET (the lock icon).
+
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    exclude:
+      - "*.md"
+      - "docs/**"
+
+pr:
+  branches:
+    include:
+      - master
+
+variables:
+  GCP_PROJECT_ID: "ai-negotiation-494315"
+  GCP_REGION: "us-central1"
+  AR_REPO: "core-calculum"                       # reuse your existing Artifact Registry repo
+  IMAGE_NAME: "ingestion-support-agent"
+  CLOUD_RUN_SERVICE: "ingestion-support-agent-api-staging"
+  IMAGE_URI: "$(GCP_REGION)-docker.pkg.dev/$(GCP_PROJECT_ID)/$(AR_REPO)/$(IMAGE_NAME)"
+  # The app runs AS this SA (Transcoder jobs use it via ADC). Make it the SAME SA whose key is
+  # GCP_SERVICE_ACCOUNT_JSON so GCS + signed URLs + Transcoder share one identity. That SA needs:
+  # roles/transcoder.admin + roles/storage.objectAdmin on BOTH buckets (uploads + videos).
+  RUNTIME_SA: "calculum-storage-sa@ai-negotiation-494315.iam.gserviceaccount.com"
+
+stages:
+  # ─────────────────────────────────────────────
+  # STAGE 1 — Lint & Test
+  # ─────────────────────────────────────────────
+  - stage: Test
+    displayName: "Lint & Test"
+    variables:
+      - group: Ingestion-Support-Staging
+    jobs:
+      - job: RunTests
+        displayName: "Run pytest"
+        pool:
+          name: "self-hosted-mac"
+        steps:
+          - script: |
+              curl -LsSf https://astral.sh/uv/install.sh | sh
+              export PATH="$HOME/.local/bin:$PATH"
+              printf '[url "https://pat:%s@dev.azure.com/"]\n\tinsteadOf = https://dev.azure.com/\n' "$AZURE_PAT" \
+                > /tmp/.azure-gitconfig
+              GIT_CONFIG_GLOBAL=/tmp/.azure-gitconfig uv sync --frozen
+              rm -f /tmp/.azure-gitconfig
+            displayName: "Install dependencies"
+            env:
+              AZURE_PAT: $(AZURE_PAT)
+
+          - script: |
+              export PATH="$HOME/.local/bin:$PATH"
+              uv run pytest tests/unit -v --tb=short || true
+            displayName: "Run unit tests (non-blocking)"
+
+  # ─────────────────────────────────────────────
+  # STAGE 2 — Build & Push
+  # ─────────────────────────────────────────────
+  - stage: Build
+    displayName: "Build & Push to Artifact Registry"
+    dependsOn: Test
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    variables:
+      - group: Ingestion-Support-Staging
+    jobs:
+      - job: BuildAndPush
+        displayName: "Docker build → Artifact Registry"
+        pool:
+          name: "self-hosted-mac"
+        steps:
+          - task: Bash@3
+            displayName: "Preflight: reclaim docker disk"
+            inputs:
+              targetType: "inline"
+              script: |
+                set -e
+                docker info >/dev/null 2>&1 || { echo "##vso[task.logissue type=error]Docker daemon not running on agent"; exit 1; }
+                df -h /
+                USED=$(df / | awk 'NR==2 {gsub("%","",$5); print $5}')
+                if [ "$USED" -ge 70 ]; then
+                  echo "Disk ${USED}% used — pruning images + build cache older than 72h"
+                  docker image prune -af --filter "until=72h" || true
+                  docker builder prune -f  --filter "until=72h" || true
+                  docker buildx prune -af --filter "until=72h" --builder calcbuilder 2>/dev/null || true
+                  docker container prune -f || true
+                fi
+                USED=$(df / | awk 'NR==2 {gsub("%","",$5); print $5}')
+                if [ "$USED" -ge 90 ]; then
+                  echo "Still ${USED}% — aggressive full prune (next build starts cold)"
+                  docker system prune -af  || true
+                  docker builder prune -af || true
+                  docker buildx prune -af --builder calcbuilder 2>/dev/null || true
+                fi
+                df -h /
+
+          - task: Bash@3
+            displayName: "Authenticate to GCP"
+            inputs:
+              targetType: "inline"
+              script: |
+                echo "$GCP_SA_KEY" > /tmp/sa-key.json
+                gcloud auth activate-service-account --key-file=/tmp/sa-key.json
+                gcloud config set project "$GCP_PROJECT_ID"
+            env:
+              GCP_SA_KEY: $(GCP_SA_KEY)
+              GCP_PROJECT_ID: $(GCP_PROJECT_ID)
+
+          - task: Bash@3
+            displayName: "Build & push image (buildx + registry cache, Azure PAT secret)"
+            inputs:
+              targetType: "inline"
+              script: |
+                set -euo pipefail
+                gcloud auth print-access-token \
+                  | docker login -u oauth2accesstoken --password-stdin "${GCP_REGION}-docker.pkg.dev"
+                # Idempotent buildx builder (docker-container driver) so the `uv sync` layer can be
+                # exported to / imported from the registry. This stops deps reinstalling on every
+                # build after a local prune; mode=max caches all stages. --secret works unchanged.
+                docker buildx version >/dev/null 2>&1 \
+                  || { echo "##vso[task.logissue type=error]docker buildx not available on this agent — install Docker Buildx (ships with modern Docker / 'docker buildx install')"; exit 1; }
+                docker buildx inspect calcbuilder >/dev/null 2>&1 \
+                  || docker buildx create --name calcbuilder --driver docker-container --bootstrap
+                docker buildx build \
+                  --builder calcbuilder \
+                  --platform linux/amd64 \
+                  --secret id=azure_pat,env=AZURE_PAT \
+                  --cache-from type=registry,ref=${IMAGE_URI}:buildcache \
+                  --cache-to   type=registry,ref=${IMAGE_URI}:buildcache,mode=max \
+                  -t "${IMAGE_URI}:${BUILD_ID}" \
+                  -t "${IMAGE_URI}:latest" \
+                  --push \
+                  -f Dockerfile .
+            env:
+              IMAGE_URI: $(IMAGE_URI)
+              GCP_REGION: $(GCP_REGION)
+              BUILD_ID: $(Build.BuildId)
+              AZURE_PAT: $(AZURE_PAT)
+
+          - task: Bash@3
+            displayName: "Clean up SA key"
+            condition: always()
+            inputs:
+              targetType: "inline"
+              script: rm -f /tmp/sa-key.json
+
+  # ─────────────────────────────────────────────
+  # STAGE 3 — Deploy to Staging (master branch)
+  # ─────────────────────────────────────────────
+  - stage: DeployStaging
+    displayName: "Deploy to Staging"
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    variables:
+      - group: Ingestion-Support-Staging
+    jobs:
+      - deployment: DeployStaging
+        displayName: "Cloud Run deploy → staging"
+        pool:
+          name: "self-hosted-mac"
+        environment: "staging"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: Bash@3
+                  displayName: "Authenticate to GCP"
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      echo "$GCP_SA_KEY" > /tmp/sa-key.json
+                      gcloud auth activate-service-account --key-file=/tmp/sa-key.json
+                      gcloud config set project "$GCP_PROJECT_ID"
+                  env:
+                    GCP_SA_KEY: $(GCP_SA_KEY)
+                    GCP_PROJECT_ID: $(GCP_PROJECT_ID)
+
+                - task: Bash@3
+                  displayName: "Deploy to Cloud Run"
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      # ^|^ delimiter: pipe appears in none of the values (POSTGRES_DSN has '@',
+                      # CORS_ALLOWED_ORIGINS has ',', so neither of those can be the delimiter).
+                      gcloud run deploy "$CLOUD_RUN_SERVICE" \
+                        --image "${IMAGE_URI}:${BUILD_ID}" \
+                        --region "$GCP_REGION" \
+                        --platform managed \
+                        --service-account "$RUNTIME_SA" \
+                        --no-allow-unauthenticated \
+                        --ingress all \
+                        --port 8080 \
+                        --memory 2Gi \
+                        --cpu 2 \
+                        --min-instances 1 \
+                        --max-instances 4 \
+                        --timeout 3600 \
+                        --concurrency 80 \
+                        --cpu-boost \
+                        --set-env-vars="^|^GCP_PROJECT_ID=${GCP_PROJECT_ID}|GCP_STORAGE_BUCKET=${GCP_STORAGE_BUCKET}|GCP_STORAGE_PREFIX=${GCP_STORAGE_PREFIX}|GCP_TRANSCRIPT_PREFIX=${GCP_TRANSCRIPT_PREFIX}|GCP_DOCUMENT_PREFIX=${GCP_DOCUMENT_PREFIX}|GCP_STORAGE_TIMEOUT_SECONDS=${GCP_STORAGE_TIMEOUT_SECONDS}|GCP_TRANSCODER_LOCATION=${GCP_TRANSCODER_LOCATION}|GCP_TRANSCODER_PUBSUB_TOPIC=${GCP_TRANSCODER_PUBSUB_TOPIC}|VIDEO_COMPRESS_ENABLED=${VIDEO_COMPRESS_ENABLED}|VIDEO_COMPRESS_MIN_BYTES=${VIDEO_COMPRESS_MIN_BYTES}|VIDEO_STORAGE=${VIDEO_STORAGE}|PUBSUB_AUDIENCE=${PUBSUB_AUDIENCE}|CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}|COLLECTION_VIDEO_CHUNKS=${COLLECTION_VIDEO_CHUNKS}|QDRANT_HOST=${QDRANT_HOST}|QDRANT_PORT=${QDRANT_PORT}|QDRANT_USE_TLS=${QDRANT_USE_TLS}|EMBED_API_URL=${EMBED_API_URL}|EMBED_API_KEY=${EMBED_API_KEY}|EMBED_MODEL=${EMBED_MODEL}|EMBED_DIMS=${EMBED_DIMS}|EMBED_TIMEOUT=${EMBED_TIMEOUT}|EMBED_MAX_TOKENS=${EMBED_MAX_TOKENS}|EMBED_BATCH_MAX_TOKENS=${EMBED_BATCH_MAX_TOKENS}|EMBED_BATCHING=${EMBED_BATCHING}|INGEST_CONCURRENCY=${INGEST_CONCURRENCY}|CHUNKING_STRATEGY=${CHUNKING_STRATEGY}|INGESTION_CHUNK_SIZE=${INGESTION_CHUNK_SIZE}|INGESTION_CHUNK_OVERLAP=${INGESTION_CHUNK_OVERLAP}|INGESTION_SEMANTIC_BREAKPOINT_PERCENTILE=${INGESTION_SEMANTIC_BREAKPOINT_PERCENTILE}|POSTGRES_DSN=${POSTGRES_DSN}|JWT_SECRET=${JWT_SECRET}|LLM_BASE_URL=${LLM_BASE_URL}|LLM_API_KEY=${LLM_API_KEY}|LLM_MODEL=${LLM_MODEL}|LOG_LEVEL=${LOG_LEVEL}|LOG_FORMAT=${LOG_FORMAT}|SCHEDULER_ENABLED=${SCHEDULER_ENABLED}|AZURE_JWKS_URL=${AZURE_JWKS_URL}|AZURE_B2C_ISSUER=${AZURE_B2C_ISSUER}|AZURE_B2C_AUDIENCE=${AZURE_B2C_AUDIENCE}|AZURE_JWT_LEEWAY_HOURS=${AZURE_JWT_LEEWAY_HOURS}" \
+                        --set-secrets="GCP_SERVICE_ACCOUNT_JSON=GCP_SERVICE_ACCOUNT_JSON:latest"
+                  env:
+                    CLOUD_RUN_SERVICE: $(CLOUD_RUN_SERVICE)
+                    IMAGE_URI: $(IMAGE_URI)
+                    BUILD_ID: $(Build.BuildId)
+                    GCP_REGION: $(GCP_REGION)
+                    GCP_PROJECT_ID: $(GCP_PROJECT_ID)
+                    RUNTIME_SA: $(RUNTIME_SA)
+                    GCP_STORAGE_BUCKET: $(GCP_STORAGE_BUCKET)
+                    GCP_STORAGE_PREFIX: $(GCP_STORAGE_PREFIX)
+                    GCP_TRANSCRIPT_PREFIX: $(GCP_TRANSCRIPT_PREFIX)
+                    GCP_DOCUMENT_PREFIX: $(GCP_DOCUMENT_PREFIX)
+                    GCP_STORAGE_TIMEOUT_SECONDS: $(GCP_STORAGE_TIMEOUT_SECONDS)
+                    GCP_TRANSCODER_LOCATION: $(GCP_TRANSCODER_LOCATION)
+                    GCP_TRANSCODER_PUBSUB_TOPIC: $(GCP_TRANSCODER_PUBSUB_TOPIC)
+                    VIDEO_COMPRESS_ENABLED: $(VIDEO_COMPRESS_ENABLED)
+                    VIDEO_COMPRESS_MIN_BYTES: $(VIDEO_COMPRESS_MIN_BYTES)
+                    VIDEO_STORAGE: $(VIDEO_STORAGE)
+                    PUBSUB_AUDIENCE: $(PUBSUB_AUDIENCE)
+                    CORS_ALLOWED_ORIGINS: $(CORS_ALLOWED_ORIGINS)
+                    COLLECTION_VIDEO_CHUNKS: $(COLLECTION_VIDEO_CHUNKS)
+                    QDRANT_HOST: $(QDRANT_HOST)
+                    QDRANT_PORT: $(QDRANT_PORT)
+                    QDRANT_USE_TLS: $(QDRANT_USE_TLS)
+                    EMBED_API_URL: $(EMBED_API_URL)
+                    EMBED_API_KEY: $(EMBED_API_KEY)
+                    EMBED_MODEL: $(EMBED_MODEL)
+                    EMBED_DIMS: $(EMBED_DIMS)
+                    EMBED_TIMEOUT: $(EMBED_TIMEOUT)
+                    EMBED_MAX_TOKENS: $(EMBED_MAX_TOKENS)
+                    EMBED_BATCH_MAX_TOKENS: $(EMBED_BATCH_MAX_TOKENS)
+                    EMBED_BATCHING: $(EMBED_BATCHING)
+                    INGEST_CONCURRENCY: $(INGEST_CONCURRENCY)
+                    CHUNKING_STRATEGY: $(CHUNKING_STRATEGY)
+                    INGESTION_CHUNK_SIZE: $(INGESTION_CHUNK_SIZE)
+                    INGESTION_CHUNK_OVERLAP: $(INGESTION_CHUNK_OVERLAP)
+                    INGESTION_SEMANTIC_BREAKPOINT_PERCENTILE: $(INGESTION_SEMANTIC_BREAKPOINT_PERCENTILE)
+                    POSTGRES_DSN: $(POSTGRES_DSN)
+                    JWT_SECRET: $(JWT_SECRET)
+                    LLM_BASE_URL: $(LLM_BASE_URL)
+                    LLM_API_KEY: $(LLM_API_KEY)
+                    LLM_MODEL: $(LLM_MODEL)
+                    LOG_LEVEL: $(LOG_LEVEL)
+                    LOG_FORMAT: $(LOG_FORMAT)
+                    SCHEDULER_ENABLED: $(SCHEDULER_ENABLED)
+                    AZURE_JWKS_URL: $(AZURE_JWKS_URL)
+                    AZURE_B2C_ISSUER: $(AZURE_B2C_ISSUER)
+                    AZURE_B2C_AUDIENCE: $(AZURE_B2C_AUDIENCE)
+                    AZURE_JWT_LEEWAY_HOURS: $(AZURE_JWT_LEEWAY_HOURS)
+
+                - task: Bash@3
+                  displayName: "Print staging URL"
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" \
+                        --region "$GCP_REGION" --format='value(status.url)')
+                      echo "##vso[task.setvariable variable=STAGING_URL]$URL"
+                      echo "Staging deployed to: $URL"
+                  env:
+                    CLOUD_RUN_SERVICE: $(CLOUD_RUN_SERVICE)
+                    GCP_REGION: $(GCP_REGION)
+
+                - task: Bash@3
+                  displayName: "Clean up SA key"
+                  condition: always()
+                  inputs:
+                    targetType: "inline"
+                    script: rm -f /tmp/sa-key.json

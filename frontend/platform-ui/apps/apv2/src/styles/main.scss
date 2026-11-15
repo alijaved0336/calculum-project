@@ -1,0 +1,15 @@
+/**
+ * APv2 global styles entry: design-system foundations + local document rules.
+ *
+ * Not loading legacy AP/AR globals (bootstrap, general/layout, sidebaricons,
+ * variables/colors) — APv2 uses tokens + component-scoped styles instead.
+ */
+@import "@ada/design-system/styles/tokens.css";
+@import "@ada/design-system/styles/base.scss";
+@import "@ada/design-system/styles/kendo-theme.css";
+@import "@ada/design-system/styles/dropdown-surface.scss";
+@import "@ada/design-system/styles/disabled-state.scss";
+@import "@ada/design-system/styles/kendo-inputs.scss";
+@import "@ada/design-system/styles/kendo-tooltip.scss";
+@import "@ada/design-system/styles/kendo-dialog.scss";
+@import "./document.scss";

@@ -1,0 +1,399 @@
+/**
+ * Background Colors
+ *
+ * Notes: 
+ *  1. We use !important here to override the default Bootstrap styles.
+ *  2. Convention taken from https://tailwindcss.com/docs/text-color  v3.3.5
+ */
+
+@use "sass:map";
+
+// This generates all the background colors based on $colors 
+// e.g.: .bg-green-500, .bg-greenlight-500
+@each $variant, $shades in $colors {
+  @each $i, $color in $shades {
+    .bg-#{$variant}-#{$i} {
+      background-color: map.get($shades, $i) !important;
+    }
+  }
+}
+
+// *** DEPRECATED - Do not edit below this line ***
+
+// Bluelight
+.bg-bluelight {
+  &-25 {
+    background-color: $color-bluelight-25;
+  }
+  &-50 {
+    background-color: $color-bluelight-50;
+  }
+  &-100 {
+    background-color: $color-bluelight-100;
+  }
+  &-200 {
+    background-color: $color-bluelight-200;
+  }
+  &-300 {
+    background-color: $color-bluelight-300;
+  }
+  &-400 {
+    background-color: $color-bluelight-400;
+  }
+  &-500 {
+    background-color: $color-bluelight-500;
+  }
+  &-600 {
+    background-color: $color-bluelight-600;
+  }
+  &-700 {
+    background-color: $color-bluelight-700;
+  }
+  &-800 {
+    background-color: $color-bluelight-800;
+  }
+  &-900 {
+    background-color: $color-bluelight-900;
+  }
+}
+
+
+// Cool Gray
+.bg-coolgray {
+  &-25 {
+    background-color: $color-coolgray-25;
+  }
+  &-50 {
+    background-color: $color-coolgray-50;
+  }
+  &-100 {
+    background-color: $color-coolgray-100;
+  }
+  &-200 {
+    background-color: $color-coolgray-200;
+  }
+  &-300 {
+    background-color: $color-coolgray-300;
+  }
+  &-400 {
+    background-color: $color-coolgray-400;
+  }
+  &-500 {
+    background-color: $color-coolgray-500;
+  }
+  &-600 {
+    background-color: $color-coolgray-600;
+  }
+  &-700 {
+    background-color: $color-coolgray-700;
+  }
+  &-800 {
+    background-color: $color-coolgray-800;
+  }
+  &-900 {
+    background-color: $color-coolgray-900;
+  }
+}
+
+// Cyan
+.bg-cyan {
+  &-25 {
+    background-color: $color-cyan-25;
+  }
+  &-50 {
+    background-color: $color-cyan-50;
+  }
+  &-100 {
+    background-color: $color-cyan-100;
+  }
+  &-200 {
+    background-color: $color-cyan-200;
+  }
+  &-300 {
+    background-color: $color-cyan-300;
+  }
+  &-400 {
+    background-color: $color-cyan-400;
+  }
+  &-500 {
+    background-color: $color-cyan-500;
+  }
+  &-600 {
+    background-color: $color-cyan-600;
+  }
+  &-700 {
+    background-color: $color-cyan-700;
+  }
+  &-800 {
+    background-color: $color-cyan-800;
+  }
+  &-900 {
+    background-color: $color-cyan-900;
+  }
+}
+
+// Error
+.bg-error {
+  &-25 {
+    background-color: $color-error-25;
+  }
+  &-50 {
+    background-color: $color-error-50;
+  }
+  &-100 {
+    background-color: $color-error-100;
+  }
+  &-200 {
+    background-color: $color-error-200;
+  }
+  &-300 {
+    background-color: $color-error-300;
+  }
+  &-400 {
+    background-color: $color-error-400;
+  }
+  &-500 {
+    background-color: $color-error-500;
+  }
+  &-600 {
+    background-color: $color-error-600;
+  }
+  &-700 {
+    background-color: $color-error-700;
+  }
+  &-800 {
+    background-color: $color-error-800;
+  }
+  &-900 {
+    background-color: $color-error-900;
+  }
+}
+
+// Gray
+.bg-gray {
+  &-25 {
+    background-color: $color-gray-25 !important;
+  }
+  &-50 {
+    background-color: $color-gray-50 !important;
+  }
+  &-100 {
+    background-color: $color-gray-100 !important;
+  }
+  &-200 {
+    background-color: $color-gray-200 !important;
+  }
+  &-300 {
+    background-color: $color-gray-300 !important;
+  }
+  &-400 {
+    background-color: $color-gray-400 !important;
+  }
+  &-500 {
+    background-color: $color-gray-500 !important;
+  }
+  &-600 {
+    background-color: $color-gray-600 !important;
+  }
+  &-700 {
+    background-color: $color-gray-700 !important;
+  }
+  &-800 {
+    background-color: $color-gray-800 !important;
+  }
+  &-900 {
+    background-color: $color-gray-900 !important;
+  }
+}
+
+// Green
+.bg-green {
+  &-50 {
+    background-color: $color-green-50;
+  }
+  &-100 {
+    background-color: $color-green-100;
+  }
+  &-200 {
+    background-color: $color-green-200;
+  }
+  &-300 {
+    background-color: $color-green-300;
+  }
+  &-400 {
+    background-color: $color-green-400;
+  }
+  &-500 {
+    background-color: $color-green-500;
+  }
+  &-600 {
+    background-color: $color-green-600;
+  }
+  &-700 {
+    background-color: $color-green-700;
+  }
+  &-800 {
+    background-color: $color-green-800;
+  }
+  &-900 {
+    background-color: $color-green-900;
+  }
+}
+
+// Orange
+.bg-orange {
+  &-25 {
+    background-color: $color-orange-25;
+  }
+  &-50 {
+    background-color: $color-orange-50;
+  }
+  &-100 {
+    background-color: $color-orange-100;
+  }
+  &-200 {
+    background-color: $color-orange-200;
+  }
+  &-300 {
+    background-color: $color-orange-300;
+  }
+  &-400 {
+    background-color: $color-orange-400;
+  }
+  &-500 {
+    background-color: $color-orange-500;
+  }
+  &-600 {
+    background-color: $color-orange-600;
+  }
+  &-700 {
+    background-color: $color-orange-700;
+  }
+  &-800 {
+    background-color: $color-orange-800;
+  }
+  &-900 {
+    background-color: $color-orange-900;
+  }
+}
+
+// Primary
+.bg-primary {
+  &-50 {
+    background-color: $color-primary-50;
+  }
+  &-100 {
+    background-color: $color-primary-100;
+  }
+  &-200 {
+    background-color: $color-primary-200;
+  }
+  &-300 {
+    background-color: $color-primary-300;
+  }
+  &-400 {
+    background-color: $color-primary-400;
+  }
+  &-500 {
+    background-color: $color-primary-500;
+  }
+  &-600 {
+    background-color: $color-primary-600;
+  }
+  &-700 {
+    background-color: $color-primary-700;
+  }
+  &-800 {
+    background-color: $color-primary-800;
+  }
+  &-900 {
+    background-color: $color-primary-900;
+  }
+}
+
+// Rose
+.bg-rose {
+  &-25 {
+    background-color: $color-rose-25;
+  }
+  &-50 {
+    background-color: $color-rose-50;
+  }
+  &-100 {
+    background-color: $color-rose-100;
+  }
+  &-200 {
+    background-color: $color-rose-200;
+  }
+  &-300 {
+    background-color: $color-rose-300;
+  }
+  &-400 {
+    background-color: $color-rose-400;
+  }
+  &-500 {
+    background-color: $color-rose-500;
+  }
+  &-600 {
+    background-color: $color-rose-600;
+  }
+  &-700 {
+    background-color: $color-rose-700;
+  }
+  &-800 {
+    background-color: $color-rose-800;
+  }
+  &-900 {
+    background-color: $color-rose-900;
+  }
+}
+
+//warning -onHold status
+.bg-warning {
+  &-500 {
+    background-color: $color-warning-500
+  }
+}
+
+// Teal
+.bg-teal {
+  &-25 {
+    background-color: $color-teal-25;
+  }
+  &-50 {
+    background-color: $color-teal-50;
+  }
+  &-100 {
+    background-color: $color-teal-100;
+  }
+  &-200 {
+    background-color: $color-teal-200;
+  }
+  &-300 {
+    background-color: $color-teal-300;
+  }
+  &-400 {
+    background-color: $color-teal-400;
+  }
+  &-500 {
+    background-color: $color-teal-500;
+  }
+  &-600 {
+    background-color: $color-teal-600;
+  }
+  &-700 {
+    background-color: $color-teal-700;
+  }
+  &-800 {
+    background-color: $color-teal-800;
+  }
+  &-900 {
+    background-color: $color-teal-900;
+  }
+}
+
+// White
+.bg-white {
+  background-color: $color-white;
+}
+// *** END DEPRECATED ***

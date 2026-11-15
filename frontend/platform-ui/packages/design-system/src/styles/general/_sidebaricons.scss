@@ -1,0 +1,45 @@
+
+//-Side bar icons
+
+a {
+    .icon-dashboard {
+		background-image: url('../../assets/svgIcons/icon-dashboard.svg');
+	}
+	.icon-overview {
+		background-image: url('../../assets/svgIcons/icon-overview.svg');
+	}
+	.icon-categorize {
+		background-image: url('../../assets/svgIcons/icon-categorize.svg');
+	}
+	.icon-card {
+		background-image: url('../../assets/svgIcons/icon-card.svg');
+	}
+
+    &.active,
+	&:hover {
+		.icon-dashboard {
+			background-image: url('../../assets/svgIcons/icon-dashboard__hover.svg');
+		}
+		.icon-overview {
+			background-image: url('../../assets/svgIcons/icon-overview__hover.svg');
+		}
+		.icon-categorize {
+			background-image: url('../../assets/svgIcons/icon-categorize__hover.svg');
+		}
+		.icon-card {
+			background-image: url('../../assets/svgIcons/icon-card__hover.svg');
+		}
+    }
+
+
+}
+
+.icon-svg-sidebar {
+  height: 30px;
+  width: 30px;
+  border-radius: 0px;
+  display: inline-block;    
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center
+}

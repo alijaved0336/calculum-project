@@ -1,0 +1,14 @@
+@import url('inter-ui/inter.css');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-base);
+  color: var(--color-text-base);
+  background: var(--bg-page);
+}

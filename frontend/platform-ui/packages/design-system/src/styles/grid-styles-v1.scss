@@ -1,0 +1,112 @@
+/**
+ * GraphQL Grid overrides (V1 / production) — not a second Kendo theme load.
+ *
+ * Hosts must already load the theme once (`kendo-theme.css` in Storybook,
+ * Calculum-theme in `@ada/ap` / AR). Re-importing `all.css` here would wipe brand
+ * overrides that load earlier (e.g. `kendo-inputs.scss` switch sizes).
+ *
+ * Prefer higher-specificity selectors under `.graphql-grid` for token tweaks
+ * rather than restating theme-owned row/hover backgrounds.
+ *
+ * Keep Kendo zebra: `.k-table-alt-row` stays at the theme’s ~4% black. Do not paint
+ * alt rows with `var(--bg-surface)`. Master-look column + row borders, header layout,
+ * animation z-index, and svg stroke still apply.
+ */
+
+// Calculum-theme + kendo-theme-bootstrap use physical `border-left` / `border-bottom`.
+// Logical-only rules lose in AR/AP. Restore master column rules (left) and row rules
+// (bottom). Leave alt-row backgrounds to the theme so zebra remains.
+.graphql-grid .k-grid .k-table-th,
+.graphql-grid .k-grid .k-table-th.k-first,
+.graphql-grid .k-grid .k-table-td,
+.graphql-grid .k-grid th,
+.graphql-grid .k-grid td,
+.graphql-grid .k-grid .k-header {
+  border-left: 1px solid var(--border-color-default);
+  border-right-width: 0;
+  border-inline-start: 1px solid var(--border-color-default);
+  border-inline-end-width: 0;
+  border-bottom: 1px solid var(--border-color-default);
+  border-block-end: 1px solid var(--border-color-default);
+}
+
+.graphql-grid .k-grid-header {
+  border-block-end-color: var(--border-color-default);
+}
+
+// Last body row sits on the pager — do not stack an extra hairline above it.
+.graphql-grid .k-grid tbody > tr:last-child > td,
+.graphql-grid .k-grid tbody > tr:last-child > .k-table-td,
+.graphql-grid .k-grid .k-table-tbody > .k-table-row:last-child > .k-table-td,
+.graphql-grid .k-grid .k-grid-content tr:last-child > td,
+.graphql-grid .k-grid .k-grid-content tr:last-child > .k-table-td {
+  border-bottom-width: 0;
+  border-block-end-width: 0;
+}
+
+
+// Header titles wrap onto at most two lines, then ellipsis (parent and nested GraphqlGrid).
+// A 2-line clamp needs the full set: -webkit-box + vertical orient + line-clamp + overflow
+// hidden + normal white-space, plus min-width 0 in flex. ColumnMenu injects the visible
+// title as `.graphql-grid-column-menu__title` (also set in the SFC); reinforce here so host
+// CSS cannot force it back onto one line. `overflow-wrap: anywhere` breaks a single word
+// longer than the column instead of overflowing it.
+.graphql-grid .k-grid-header .k-column-title,
+.graphql-grid .k-grid-header .graphql-grid-column-menu__title {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.graphql-grid .k-grid-header .graphql-grid-column-menu__title {
+  flex: 1 1 auto;
+}
+
+// Header cell: Kendo puts the custom headerCell (title + DS ⋮ menu) inside
+// `.k-column-title`, with the sort glyph as a sibling. `display: contents` lifts
+// both into `.k-link` so the menu can sit on the far right (`order: 2`).
+// Ellipsis lives on `.graphql-grid-column-menu__title` (this box is contents).
+.graphql-grid .k-grid-header .k-cell-inner {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.graphql-grid .k-grid-header .k-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 0.25rem;
+  // Keep overflow visible so the ⋮ is not clipped by theme `overflow: hidden` on
+  // `.k-link`; title ellipsis is on `.graphql-grid-column-menu__title` instead.
+  overflow: visible;
+}
+
+.graphql-grid .k-grid-header .k-column-title:has(.graphql-grid-column-menu) {
+  display: contents;
+}
+
+// Popup stacking only. Storybook (and hosts with `html` zoom 1) load this sheet — do **not**
+// put `.k-animation-container { zoom: … }` here; it shifts Kendo Tooltip/Popup. Hosts that
+// still use `html { zoom: 0.67 }` compensate in **app** CSS (e.g. AP `_general.scss` on
+// master), not in this shared DS sheet.
+.k-animation-container {
+  z-index: 1070;
+}
+
+// @progress/kendo-svg-icons (grid peer) uses outline pager glyphs; theme only
+// sets `fill: currentColor`, so paths with fill="none" disappear without stroke.
+// Scope to GraphqlGrid pager — unscoped `.k-svg-icon` would bold every Kendo SVG
+// icon in the host (buttons, dropdowns, inputs) with an extra 1px stroke.
+.graphql-grid .k-pager .k-svg-icon > svg {
+  stroke: currentColor;
+}

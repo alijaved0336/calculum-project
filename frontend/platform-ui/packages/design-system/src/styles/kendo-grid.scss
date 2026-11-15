@@ -1,0 +1,7 @@
+/**
+ * Production GraphqlGrid entry — loads grid-styles-v1 (keeps Kendo zebra).
+ *
+ * Rebranding hosts import V2 instead:
+ * `@ada/design-system/styles/grid-styles-v2.scss`
+ */
+@use './grid-styles-v1.scss';

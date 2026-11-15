@@ -1,0 +1,296 @@
+trigger:
+  branches:
+    include:
+      - prod
+  paths:
+    exclude:
+      - "*.md"
+      - "docs/**"
+
+pr:
+  branches:
+    include:
+      - prod
+
+variables:
+  GCP_PROJECT_ID: "ai-negotiation-494315"
+  GCP_REGION: "northamerica-northeast2"
+  AR_REPO: "calculum-prod"
+  IMAGE_NAME: "ingestion-api"
+  CLOUD_RUN_SERVICE: "ingestion-calculum-api-prod"
+  IMAGE_URI: "$(GCP_REGION)-docker.pkg.dev/$(GCP_PROJECT_ID)/$(AR_REPO)/$(IMAGE_NAME)"
+
+stages:
+  # ─────────────────────────────────────────────
+  # STAGE 1 — Lint & Test
+  # ─────────────────────────────────────────────
+  - stage: Test
+    displayName: "Lint & Test"
+    variables:
+      - group: ingestion-calculum-production
+    jobs:
+      - job: RunTests
+        displayName: "Run pytest"
+        pool:
+          name: "self-hosted-mac"
+        steps:
+          - script: |
+              curl -LsSf https://astral.sh/uv/install.sh | sh
+              export PATH="$HOME/.local/bin:$PATH"
+              printf '[url "https://pat:%s@dev.azure.com/"]\n\tinsteadOf = https://dev.azure.com/\n' "$GIT_PAT" \
+                > /tmp/.azure-gitconfig
+              GIT_CONFIG_GLOBAL=/tmp/.azure-gitconfig uv sync --frozen
+              rm -f /tmp/.azure-gitconfig
+            displayName: "Install dependencies"
+            env:
+              GIT_PAT: $(GIT_PAT)
+
+          - script: |
+              export PATH="$HOME/.local/bin:$PATH"
+              uv run pytest tests/unit -v --tb=short || true
+            displayName: "Run unit tests (non-blocking)"
+
+  # ─────────────────────────────────────────────
+  # STAGE 2 — Build & Push
+  # ─────────────────────────────────────────────
+  - stage: Build
+    displayName: "Build & Push to Production Artifact Registry"
+    dependsOn: Test
+    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    variables:
+      - group: ingestion-calculum-production
+    jobs:
+      - job: BuildAndPush
+        displayName: "Docker build → Production Artifact Registry"
+        pool:
+          name: "self-hosted-mac"
+        steps:
+          - task: Bash@3
+            displayName: "Preflight: docker + free space"
+            inputs:
+              targetType: "inline"
+              script: |
+                set -e
+                docker info >/dev/null 2>&1 || { echo "##vso[task.logissue type=error]Docker daemon not running on agent"; exit 1; }
+                df -h /
+                USED=$(df / | awk 'NR==2 {gsub("%","",$5); print $5}')
+                if [ "$USED" -ge 70 ]; then
+                  echo "Disk ${USED}% used — pruning images + build cache older than 72h"
+                  docker image prune -af --filter "until=72h" || true
+                  docker builder prune -f  --filter "until=72h" || true
+                  docker container prune -f || true
+                fi
+                USED=$(df / | awk 'NR==2 {gsub("%","",$5); print $5}')
+                if [ "$USED" -ge 90 ]; then
+                  echo "Still ${USED}% — aggressive full prune (next build starts cold)"
+                  docker system prune -af  || true
+                  docker builder prune -af || true
+                fi
+                df -h /
+
+          - task: Bash@3
+            displayName: "Authenticate to GCP"
+            inputs:
+              targetType: "inline"
+              script: |
+                echo "$GCP_SA_KEY" > /tmp/sa-key.json
+                gcloud auth activate-service-account --key-file=/tmp/sa-key.json
+                gcloud config set project "$GCP_PROJECT_ID"
+            env:
+              GCP_SA_KEY: $(GCP_SA_KEY)
+              GCP_PROJECT_ID: $(GCP_PROJECT_ID)
+
+          - task: Bash@3
+            displayName: "Build base image (content-addressed by uv.lock hash)"
+            inputs:
+              targetType: "inline"
+              script: |
+                set -euo pipefail
+                LOCK_HASH=$(shasum -a 256 uv.lock | cut -c1-16)
+                BASE_TAG="${IMAGE_URI}-base:${LOCK_HASH}"
+                echo "uv.lock hash: ${LOCK_HASH}"
+
+                gcloud auth print-access-token \
+                  | docker login -u oauth2accesstoken --password-stdin \
+                    "${GCP_REGION}-docker.pkg.dev"
+
+                if docker pull "${BASE_TAG}" 2>/dev/null; then
+                  echo "Cache hit — reusing ${BASE_TAG}"
+                else
+                  echo "Cache miss — building base image..."
+                  docker pull "${IMAGE_URI}-base:latest" || true
+                  DOCKER_BUILDKIT=1 docker build \
+                    --platform linux/amd64 \
+                    --cache-from "${IMAGE_URI}-base:latest" \
+                    --secret id=git_pat,env=GIT_PAT \
+                    -t "${BASE_TAG}" \
+                    -t "${IMAGE_URI}-base:latest" \
+                    -f Dockerfile.base .
+                  docker push "${BASE_TAG}"
+                  docker push "${IMAGE_URI}-base:latest"
+                fi
+
+                echo "##vso[task.setvariable variable=BASE_TAG]${BASE_TAG}"
+            env:
+              IMAGE_URI: $(IMAGE_URI)
+              GCP_REGION: $(GCP_REGION)
+              GIT_PAT: $(GIT_PAT)
+
+          - task: Bash@3
+            displayName: "Build Docker image"
+            inputs:
+              targetType: "inline"
+              script: |
+                set -euo pipefail
+                DOCKER_BUILDKIT=1 docker build \
+                  --platform linux/amd64 \
+                  --build-arg BASE_IMAGE="$BASE_TAG" \
+                  -t "${IMAGE_URI}:${BUILD_ID}" \
+                  -t "${IMAGE_URI}:latest" \
+                  -f Dockerfile .
+            env:
+              BASE_TAG: $(BASE_TAG)
+              IMAGE_URI: $(IMAGE_URI)
+              BUILD_ID: $(Build.BuildId)
+
+          - task: Bash@3
+            displayName: "Push to Production Artifact Registry"
+            inputs:
+              targetType: "inline"
+              script: |
+                set -euo pipefail
+                docker push "${IMAGE_URI}:${BUILD_ID}"
+                docker push "${IMAGE_URI}:latest"
+            env:
+              IMAGE_URI: $(IMAGE_URI)
+              BUILD_ID: $(Build.BuildId)
+
+          - task: Bash@3
+            displayName: "Clean up SA key"
+            condition: always()
+            inputs:
+              targetType: "inline"
+              script: rm -f /tmp/sa-key.json
+
+  # ─────────────────────────────────────────────
+  # STAGE 3 — Deploy to Production
+  # ─────────────────────────────────────────────
+  - stage: DeployProduction
+    displayName: "Deploy to Production"
+    dependsOn: Build
+    condition: succeeded()
+    variables:
+      - group: ingestion-calculum-production
+    jobs:
+      - deployment: DeployProduction
+        displayName: "Cloud Run deploy → production"
+        pool:
+          name: "self-hosted-mac"
+        environment: "production"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: Bash@3
+                  displayName: "Authenticate to GCP"
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      echo "$GCP_SA_KEY" > /tmp/sa-key.json
+                      gcloud auth activate-service-account --key-file=/tmp/sa-key.json
+                      gcloud config set project "$GCP_PROJECT_ID"
+                  env:
+                    GCP_SA_KEY: $(GCP_SA_KEY)
+                    GCP_PROJECT_ID: $(GCP_PROJECT_ID)
+
+                - task: Bash@3
+                  displayName: "Deploy to Cloud Run"
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      gcloud run deploy "$CLOUD_RUN_SERVICE" \
+                        --image "${IMAGE_URI}:${BUILD_ID}" \
+                        --region "$GCP_REGION" \
+                        --platform managed \
+                        --allow-unauthenticated \
+                        --port 8001 \
+                        --memory 4Gi \
+                        --cpu 2 \
+                        --min-instances 1 \
+                        --max-instances 10 \
+                        --network=production-vpc \
+                        --subnet=prod-private-subnet-northamerica-northeast2 \
+                        --vpc-egress=private-ranges-only \
+                        --ingress=all \
+                        --set-env-vars="QDRANT_HOST=${QDRANT_HOST},QDRANT_PORT=${QDRANT_PORT},QDRANT_USE_TLS=${QDRANT_USE_TLS},QDRANT_API_KEY=${QDRANT_API_KEY},COLLECTION_KNOWLEDGE_BASE=${COLLECTION_KNOWLEDGE_BASE},EMBED_API_URL=${EMBED_API_URL},EMBED_API_KEY=${EMBED_API_KEY},EMBED_MODEL=${EMBED_MODEL},EMBED_DIMS=${EMBED_DIMS},EMBED_BATCHING=${EMBED_BATCHING},EMBED_CONCURRENCY=${EMBED_CONCURRENCY},CALCULUM_API_URL=${CALCULUM_API_URL},CALCULUM_API_KEY=${CALCULUM_API_KEY},POSTGRES_DSN=${POSTGRES_DSN},JWT_SECRET=${JWT_SECRET},LOG_LEVEL=${LOG_LEVEL},LOG_FORMAT=${LOG_FORMAT},SCHEDULER_ENABLED=${SCHEDULER_ENABLED},CHUNKING_STRATEGY=${CHUNKING_STRATEGY},GCP_PROJECT_ID=${GCP_PROJECT_ID},AZURE_JWKS_URL=${AZURE_JWKS_URL},AZURE_B2C_ISSUER=${AZURE_B2C_ISSUER},AZURE_B2C_AUDIENCE=${AZURE_B2C_AUDIENCE},AZURE_JWT_LEEWAY_HOURS=${AZURE_JWT_LEEWAY_HOURS}" \
+                        --set-secrets="GCP_SERVICE_ACCOUNT_JSON=GCP_SERVICE_ACCOUNT_JSON:latest" \
+                        --timeout 300 \
+                        --concurrency 80 \
+                        --cpu-boost
+                  env:
+                    CLOUD_RUN_SERVICE: $(CLOUD_RUN_SERVICE)
+                    IMAGE_URI: $(IMAGE_URI)
+                    BUILD_ID: $(Build.BuildId)
+                    GCP_REGION: $(GCP_REGION)
+                    GCP_PROJECT_ID: $(GCP_PROJECT_ID)
+                    QDRANT_HOST: $(QDRANT_HOST)
+                    QDRANT_PORT: $(QDRANT_PORT)
+                    QDRANT_USE_TLS: $(QDRANT_USE_TLS)
+                    QDRANT_API_KEY: $(QDRANT_API_KEY)
+                    COLLECTION_KNOWLEDGE_BASE: $(COLLECTION_KNOWLEDGE_BASE)
+                    EMBED_API_URL: $(EMBED_API_URL)
+                    EMBED_API_KEY: $(EMBED_API_KEY)
+                    EMBED_MODEL: $(EMBED_MODEL)
+                    EMBED_DIMS: $(EMBED_DIMS)
+                    EMBED_BATCHING: $(EMBED_BATCHING)
+                    EMBED_CONCURRENCY: $(EMBED_CONCURRENCY)
+                    CALCULUM_API_URL: $(CALCULUM_API_URL)
+                    CALCULUM_API_KEY: $(CALCULUM_API_KEY)
+                    POSTGRES_DSN: $(POSTGRES_DSN)
+                    JWT_SECRET: $(JWT_SECRET)
+                    LOG_LEVEL: $(LOG_LEVEL)
+                    LOG_FORMAT: $(LOG_FORMAT)
+                    SCHEDULER_ENABLED: $(SCHEDULER_ENABLED)
+                    CHUNKING_STRATEGY: $(CHUNKING_STRATEGY)
+                    AZURE_JWKS_URL: $(AZURE_JWKS_URL)
+                    AZURE_B2C_ISSUER: $(AZURE_B2C_ISSUER)
+                    AZURE_B2C_AUDIENCE: $(AZURE_B2C_AUDIENCE)
+                    AZURE_JWT_LEEWAY_HOURS: $(AZURE_JWT_LEEWAY_HOURS)
+
+                - task: Bash@3
+                  displayName: "Print production URL"
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      URL=$(gcloud run services describe "$CLOUD_RUN_SERVICE" \
+                        --region "$GCP_REGION" \
+                        --format='value(status.url)')
+                      echo "##vso[task.setvariable variable=PRODUCTION_URL]$URL"
+                      echo "Production deployed to: $URL"
+                  env:
+                    CLOUD_RUN_SERVICE: $(CLOUD_RUN_SERVICE)
+                    GCP_REGION: $(GCP_REGION)
+
+                - task: Bash@3
+                  displayName: "Health check"
+                  inputs:
+                    targetType: "inline"
+                    script: |
+                      sleep 10
+                      TOKEN=$(gcloud auth print-identity-token --audiences="$PRODUCTION_URL")
+                      HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+                        -H "Authorization: Bearer $TOKEN" "${PRODUCTION_URL}/health")
+                      echo "Health check HTTP status: ${HTTP_CODE}"
+                      if [ "$HTTP_CODE" != "200" ]; then
+                        echo "Health check failed with status ${HTTP_CODE}"
+                        exit 1
+                      fi
+                  env:
+                    PRODUCTION_URL: $(PRODUCTION_URL)
+
+                - task: Bash@3
+                  displayName: "Clean up SA key"
+                  condition: always()
+                  inputs:
+                    targetType: "inline"
+                    script: rm -f /tmp/sa-key.json

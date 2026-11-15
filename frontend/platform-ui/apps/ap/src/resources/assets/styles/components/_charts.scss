@@ -1,0 +1,197 @@
+/*!
+ * Components Card
+ */
+.chart {
+  width: 100%; 
+	min-height: 200px;
+	&.chart--md {
+		min-height: 190px;
+	}
+	&-left {
+		position: absolute;
+		left: -80px;
+		top: 70px
+	}
+	&-right {
+		position: absolute;
+		left: 100px;
+		top: 70px
+	}
+	&-footer {
+		margin-top: 200px;
+	}
+	&-label {
+		position: relative;
+		display: flex;
+		justify-content: center;
+		.label-color {
+			content: '';
+			position: relative;
+			width: 25px;
+			height: 25px;
+			border-radius: 50%;
+			left: -10px;
+			top: 0;
+			&::after {
+				content: '';
+				position: absolute;
+				background-color: $body-bg;
+				width: 11px;
+				height: 11px;
+				border-radius: 50%;
+				left: 7px;
+				top: 7px;
+			}
+		}
+	}
+	&-label-line {
+		content: '';
+		position: relative;
+		width: $margin*3;
+		height: $margin - 5;
+		border-radius: 35px;
+		margin: 0 auto;
+		margin-bottom: 5px;
+	}
+}
+
+// Chart Line
+.chart-line {
+	position: relative;
+	width: 100%;
+	height: 40px;
+	border-radius: 35px;
+	span {
+		content: '';
+		position: absolute;
+		height: 40px;
+		border-radius: 35px;		
+		&.title {
+			font-size: $font-md;
+			text-align: center;
+			margin-top: 10px;
+			color: $body-bg;
+		}
+	}
+	&--sm {
+		height: 20px;
+		span {
+			height: 20px;
+			&.title {
+				margin-top: 0;
+			}
+		}
+	}
+	&.chart-line-number {
+		.title {
+			right: 0;
+		}
+		.title1 {			
+			text-align: center;
+			width: 100%;
+			margin-top: 10px;
+			font-size: $font-md;
+		}
+	}
+}
+
+// Contenedores
+.chart-container {
+	&.show-scroll {
+		position: relative;
+		padding-bottom: 400px;
+		height: 0;
+		overflow-y: hidden;
+		overflow-x: scroll;
+		> div {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width:100%;
+			height:500px;		
+		}
+	}
+}
+
+// Charts Overview
+.overview-table {
+	padding: $margin__bootstrap $margin;
+	.overview-row {
+		display: flex;
+		margin-bottom: $margin__bootstrap;
+	}
+	.overview-name {
+		min-width: 150px;
+		text-align: left;
+		@media(max-width: 1200px) {			
+			font-size: $font-md;
+			min-width: 120px;
+		}
+	}
+	.overview-percentage {
+		min-width: 50px;
+		@media(max-width: 1200px) {
+			font-size: $font-md;
+		}
+	}	
+	.overview-slice {
+		@include isFlex(center, space-around);
+		background-color: $color-gray-light;
+		color: $color-disabled;
+		font-size: $font-md;
+		border-radius: $margin;
+		height: $margin;
+		width: -webkit-fill-available;
+		margin: 0 $margin__bootstrap;
+		.slice {
+			padding-left: 5%;
+			padding-right: 5%;
+			height: $margin;
+			background-color: transparent;
+			transition: $transition;
+			display: flex;
+			align-items: center;
+			@media(max-width: 1200px) {
+				padding-left: 2%;
+				padding-right: 2%;
+			}
+			&.active {
+				@include isFlex(center);
+				background-color: $body-bg;
+				color: $body-color;
+				border-radius: $margin;
+				box-shadow: 0 0 1rem 0 $shadow;				
+			}
+		}
+	}
+}
+
+.pieChart-tooltip {
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  color: $color-white !important;
+  height: 200px;
+}
+
+.pieChart-tooltip .pieChart-tooltiptext {
+  visibility: hidden;
+  width: auto;
+  height: auto;
+  background-color: $color-black;
+  color: $color-white !important;
+  font-size: 0.8em;
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-top: 0;
+  margin-right: 30px;
+  position: absolute;
+  z-index: 97;
+  margin-left: 60px;
+}
+
+.pieChart-tooltip:hover .pieChart-tooltiptext {
+  visibility: visible;
+  color: white !important;
+}

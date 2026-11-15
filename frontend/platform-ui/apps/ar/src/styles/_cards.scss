@@ -1,0 +1,30 @@
+.card {
+    position: relative;
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 32px;
+    min-height: 27rem;
+    flex-flow: column nowrap;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+// Round country flag - AR's one shared look (CustomerCardHeader, CustomerCardRatingNMetrics).
+// Same size/shape as @ada/design-system's own SupplierCard flag; `object-fit: cover` keeps a
+// non-square source (flag SVGs rarely are) from distorting inside the circle. The 1px ring (a
+// box-shadow, so it adds no layout size) keeps mostly-white flags - Japan's reads as a lone red
+// dot otherwise - legible against a white surface.
+//
+// `.supplier-card__flag` is SupplierCard's own class (BuyerCard renders it here): it already
+// carries the size/shape from the design system, so it only needs the ring from this rule for all
+// three flags to match - listed here rather than patched in the shared DS component.
+.ar-country-flag,
+.supplier-card__flag {
+    flex: 0 0 auto;
+    width: 1.5rem;
+    height: 1.5rem;
+    object-fit: cover;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px var(--border-color-default);
+}

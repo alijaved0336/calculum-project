@@ -1,0 +1,68 @@
+// ? - Remove this
+.fix-menu {
+    position: absolute;
+    right: $margin;
+    background: $body-bg;
+    padding: $margin__bootstrap;
+    margin-top: calc(#{$margin__bootstrap}*2);
+	border: $border-light;	
+	border-radius: $border__radius;
+	transition: $transition;
+	z-index: 90;
+	&.collapse {
+		border: 1px solid rgba($color: $color-black, $alpha: 0.15);
+		border-radius: $border__radius;
+		padding: calc(#{$margin__bootstrap}*2) calc(#{$margin__bootstrap}*2) $margin__bootstrap;
+    top: 1rem;
+	}
+	li {
+		margin-bottom: $margin__bootstrap;
+		.link--icon {
+			margin-left: 0;
+		}
+	}
+}
+
+.fix-menu-plan {
+  position: absolute;
+  right: $margin;
+  background: $body-bg;
+  padding: $margin__bootstrap;
+  margin-top: 14.5rem;
+  border: $border-light;	
+  border-radius: $border__radius;
+  transition: $transition;
+  z-index: 99;
+  &.collapse {
+    border: 1px solid rgba($color: $color-black, $alpha: 0.15);
+    border-radius: $border__radius;
+    padding: calc(#{$margin__bootstrap}*2) calc(#{$margin__bootstrap}*2) $margin__bootstrap;
+  }
+  li {
+    margin-bottom: $margin__bootstrap;
+    .link--icon {
+      margin-left: 0;
+    }
+  }
+}
+
+.float-menu {
+    position: absolute;
+    right: $margin;
+    background: $body-bg;
+    padding: calc(#{$margin__bootstrap}/2);
+    margin-top: calc(#{$margin__bootstrap}*3);
+	border: $border-light;	
+	border-radius: $border__radius;
+	transition: $transition;
+	z-index: 99;
+	&.collapse {
+		border: 1px solid rgba($color: $color-black, $alpha: 0.15);
+		border-radius: $border__radius;
+		padding: $margin__bootstrap $margin__bootstrap $margin__bootstrap;
+	}
+}
+
+.k-toolbar.k-grid-toolbar.k-toolbar-md {
+  position: static;
+}

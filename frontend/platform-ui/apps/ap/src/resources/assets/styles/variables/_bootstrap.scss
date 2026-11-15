@@ -1,0 +1,22 @@
+// Custom Bootstrap variables
+
+// 1. Copy/paste from /scss/_variables.scss to _custom.scss whatever you want to modify.
+// 2. Remove any !default from the pasted code and change the values to what you want.
+// 3. Recompile (see Build tools) - you need to successfully run npm run dist to rebuild from source.
+
+// *NOTE*: Don't modify anything inside _variables.scss as you will lose those changes upon upgrading Bootstrap.
+
+// Grid breakpoints
+//
+// Define the minimum dimensions at which your layout will change,
+// adapting to different screen sizes, for use in media queries.
+
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1400px,
+  xxl: 1600px,
+  xxxl: 1920px,
+);
